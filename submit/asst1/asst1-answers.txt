@@ -1,0 +1,150 @@
+Assignment 1
+
+Step 4
+
+sys161: System/161 release 2.0.3, compiled Aug 10 2015 13:31:07
+
+OS/161 base system version 1.99.08
+Copyright (c) 2000, 2001-2005, 2008-2011, 2013, 2014
+President and Fellows of Harvard College.  All rights reserved.
+
+Put-your-group-name-here's system version 0 (DUMBVM #1)
+
+292k physical memory available
+Device probe...
+lamebus0 (system main bus)
+emu0 at lamebus0
+ltrace0 at lamebus0
+ltimer0 at lamebus0
+beep0 at ltimer0
+rtclock0 at ltimer0
+lrandom0 at lamebus0
+random0 at lrandom0
+lhd0 at lamebus0
+lhd1 at lamebus0
+lser0 at lamebus0
+con0 at lser0
+
+cpu0: MIPS/161 (System/161 2.x) features 0x0
+
+ssh-linux2:~/os161/src> git log
+commit 5daea1a32b1072026b09905f8ed6fccd79abfdc6
+Author: Jordan Ou Yang <z1v0b@ssh-linux2.ece.ubc.ca>
+Date:   Thu Sep 12 09:56:40 2019 -0700
+
+Initial commit of os161 for CPEN331
+
+ssh-linux2:~/os161/src> git tag
+asst1-start
+
+1.When a trap occurs the trap handler is invoked located here:
+
+arch/mips/locore/trap.c # Common trap handler.
+
+The first line that is executed is this function in the trap.c file:
+mips_trap(struct trapframe *tf)
+
+Control gets transferred from that point to killing the process if the
+trap is a fatal fault.
+
+If it is an interrupt then control gets passed to the interrupt handler on this line:
+/* Interrupt? Call the interrupt handler and return. */
+if (code == EX_IRQ) {
+
+This is different because it just returns and restores the process after the interrupt
+
+2.In the same arch/mips/locore/trap.c there is a function enter_new_process. This is the part of the code that invokes system calls from user programs and causes traps. On line 423 I found this code. It causes traps when it calls mips_usermode(&tf); on line 437
+
+3.$$$
+
+There are libc functions in the common part of the source tree as well as in the userland/lib/libc because the configure script
+only configures the OS/161 dist and build system. It does not configure the OS kernel, for which there is a different configuration in
+another area. That is why the libc functions must be duplicated, as the other configuration script needs it for 
+configuring the OS system kernel.
+
+4.
+
+Two things the configure file configures are the OS/161 distribution and build system.
+
+You may want to re run it if you are not at the top of the os161 tree
+
+5.
+
+Signs a function may be machine dependent are having userptr_t as an argument.
+I.E it needs a valid address to run, which comes from the machine.
+
+In machine independent code it can use machine-dependent C setjmp/longjmp
+facility to perform recovery from invalid address.
+
+It is important to maintain this separation so that machine dependent code does
+not take invalid addresses that machine independent code could handle.
+
+6.
+
+The size of a trapframe is 36 32 bit registers total, or 32 32 bit saved registers.
+
+It is that size so it can save the userstate when the exception is handled. This is because
+there are 32 32 bit registers in os161, and we can return to the process once 
+the exceptions are cancelled.
+
+7.
+
+If you run "config" INSTEAD OF "./config" you may run the wrong script (system kernel config)
+and will have to re run the config script
+
+You may have to re run the script if the configuration that this script is checking 
+is not a valid configuration for the supported architecture. This requires to make the config into
+a valid configuration.
+
+8.
+
+“Rerun bmake depend if/when you change header file inclusions, or after re-running config. Otherwise, there is no need to repeat it. Rerun bmake to recompile as needed.”
+
+9.
+
+If you rerun bmake depend to recomplie the kernel you should run bmake install to copy over the kernel to os161/root again.
+
+10.
+
+You could run hello world by
+putting it in a file that is currently being run at startup like
+src/kern/arch/sys161/dev/lamebus_machdep.c,
+and insert a 
+
+kprintf(“Hello world”);
+
+after line 100 which prints
+kprintf("lamebus0 (system main bus)\n");
+on startup
+
+You then have to recompile os161
+
+You must also rebuild the kernel using
+bmake depend
+bmake
+bmake install 
+
+in the kern/compile/DUMBVM
+
+11.
+
+12.
+
+13.
+
+Debugger
+
+14. The first function that executes the os161 starts up is start() in start.s
+
+15. 54	   addiu sp, sp, -24
+
+16.
+
+17. The preliminary assembly instructions are being run before running the c code in the main
+of the kernel.
+
+18.
+
+19. OK 
+
+20.
