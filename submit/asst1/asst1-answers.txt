@@ -1,4 +1,4 @@
-Assignment 1
+Asignment 1
 
 Step 4
 
@@ -128,9 +128,19 @@ in the kern/compile/DUMBVM
 
 11.
 
+We need these files because the os161 distribution may not have access to the std utilities on
+the present machine you are working on.
+
 12.
 
+It is saved to a special register.
+
 13.
+
+You would need to modify the headers like in start.s, main.c.
+
+You would need to re run the kern/conf/config script, bmake depend in kern/compile/DUMBVM,
+and bmake install in kern/compile/DUMBVM.
 
 Debugger
 
