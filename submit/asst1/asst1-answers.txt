@@ -134,17 +134,77 @@ in the kern/compile/DUMBVM
 
 Debugger
 
-14. The first function that executes the os161 starts up is start() in start.s
+14. The first function that executes the os161 starts up is start() in /arch/sys161/main/start.S
 
-15. 54	   addiu sp, sp, -24
+15. addiu sp, sp, -24
 
 16.
 
-17. The preliminary assembly instructions are being run before running the c code in the main
-of the kernel.
+(gdb) info b
+Num     Type           Disp Enb Address    What
+1       breakpoint     keep y   0x800139e4 in kmain at ../../main/main.c:211
+	breakpoint already hit 1 time
+2       breakpoint     keep y   0x800139ec in kmain at ../../main/main.c:213
+	breakpoint already hit 1 time
+
+17.  Assembly instructions are executing the preliminary instructions to prepare to
+run sys161.
+
+These assembly instructions save return addresses, sets up a boot stack for sys161,
+initializing necessary registers, and setting up the stack frame, setting up status 
+registers etc.
 
 18.
 
-19. OK 
+Line 215 jal kmain
+
+19. 
+
+109		ram_bootstrap();
+(gdb) n
+110		proc_bootstrap();
+(gdb) n
+
+Breakpoint 2, boot () at ../../main/main.c:111
+111		thread_bootstrap();
+
+
+Along with	
+
+hardclock_bootstrap();
+vfs_bootstrap();
+kheap_nextgeneration();
 
 20.
+
+(gdb) print *bootcpu
+Cannot access memory at address 0x80000
+(gdb) print bootcpu
+$1 = (struct cpu *) 0x80000
+
+It prints the memory address 0x80000
+
+21.
+
+(gdb) print *bootcpu
+$3 = {c_self = 0x8003af00, c_number = 0, c_hardware_number = 0, c_curthread = 0x8003bf80, 
+  c_zombies = {tl_head = {tln_prev = 0x0, tln_next = 0x8003af1c, tln_self = 0x0}, tl_tail = {
+      tln_prev = 0x8003af10, tln_next = 0x0, tln_self = 0x0}, tl_count = 0}, c_hardclocks = 0, 
+  c_spinlocks = 0, c_isidle = false, c_runqueue = {tl_head = {tln_prev = 0x0, 
+      tln_next = 0x8003af44, tln_self = 0x0}, tl_tail = {tln_prev = 0x8003af38, tln_next = 0x0, 
+      tln_self = 0x0}, tl_count = 0}, c_runqueue_lock = {splk_lock = 0, splk_holder = 0x0}, 
+  c_ipi_pending = 0, c_shootdown = {{ts_placeholder = 0} <repeats 16 times>}, 
+  c_numshootdown = 0, c_ipi_lock = {splk_lock = 0, splk_holder = 0x0}}
+
+
+(gdb) print bootcpu
+$4 = (struct cpu *) 0x8003af00
+
+22.
+
+(gdb) array
+Missing argument 0 in user function.
+
+23.
+
+Missing argument 0 in user function.
