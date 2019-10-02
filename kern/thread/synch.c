@@ -163,7 +163,7 @@ lock_create(const char *name)
       	}
 
         spinlock_init(&lock->lk_lock);
-
+	lock->lk_holder = NULL;
         return lock;
 }
 
@@ -171,6 +171,7 @@ void
 lock_destroy(struct lock *lock)
 {
         KASSERT(lock != NULL);
+	KASSERT(lock->lk_holder == NULL);
 	spinlock_cleanup(&lock->lk_lock);
         wchan_destroy(lock->lk_wchan);
         kfree(lock->lk_name);
@@ -180,23 +181,44 @@ lock_destroy(struct lock *lock)
 void
 lock_acquire(struct lock *lock)
 {	//This action may not block an interrupt handler
+
+	DEBUGASSERT(lock != NULL);
 	KASSERT(curthread->t_in_interrupt == false);
 	KASSERT(lock != NULL);
 	spinlock_acquire(&lock->lk_lock);
+	KASSERT(lock->lk_holder != curthread);
+	
+	while (lock->lk_holder != NULL) {
+		/* As in the semaphore. */
+                wchan_sleep(lock->lk_wchan, &lock->lk_lock);
+	}
+	
+	lock->lk_holder = curthread;
+	spinlock_release(&lock->lk_lock);
 }
 
 void
 lock_release(struct lock *lock)
 {	//Uses funciton in spinlock.c to unlock lock
+	DEBUGASSERT(lock != NULL);
+	spinlock_acquire(&lock->lk_lock);
+	KASSERT(lock->lk_holder == curthread);
+	lock->lk_holder = NULL;
+	wchan_wakeone(lock->lk_wchan, &lock->lk_lock);
 	spinlock_release(&lock->lk_lock);
 }
 
 bool
 lock_do_i_hold(struct lock *lock)
 {	//Ensures action does not block an interrupt handler and that lock is not null
-	KASSERT(curthread->t_in_interrupt == false);
-	KASSERT(lock != NULL);
-	return (spinlock_do_i_hold(&lock->lk_lock));
+	bool ret;
+ 
+	DEBUGASSERT(lock != NULL);
+	spinlock_acquire(&lock->lk_lock);
+	ret = (lock->lk_holder == curthread);
+	spinlock_release(&lock->lk_lock);
+
+        return ret;
 }
 
 ////////////////////////////////////////////////////////////
@@ -245,18 +267,37 @@ cv_destroy(struct cv *cv)
 void
 cv_wait(struct cv *cv, struct lock *lock)
 {	//Uses functions in thread c to fufill requirements	
-	wchan_sleep(cv->cv_wchan, &lock->lk_lock);
-}
+	spinlock_acquire(&cv->cv_lock);
+	lock_release(lock);
+	wchan_sleep(cv->cv_wchan, &cv->cv_lock);
+	/*
+	 * It is kind of silly to acquire this spinlock in wchan_sleep
+	 * and then release it right away. If we were going for
+	 * performance we might pass a flag to avoid that in this
+	 * case. Or we might use lock->lk_lock to protect the wchan
+	 * and separate out enough of the lock_acquire/lock_release
+	 * logic to make that work cleanly.
+	 */
+	spinlock_release(&cv->cv_lock);
+	lock_acquire(lock);
+
+}	
 
 void
 cv_signal(struct cv *cv, struct lock *lock)
-{	
-	wchan_wakeone(cv->cv_wchan, &lock->lk_lock);
+{
+	(void)lock;
+        spinlock_acquire(&cv->cv_lock);     
+        wchan_wakeone(cv->cv_wchan, &cv->cv_lock);
+        spinlock_release(&cv->cv_lock);
 }
 
 void
 cv_broadcast(struct cv *cv, struct lock *lock)
 {	
-        wchan_wakeall(cv->cv_wchan, &lock->lk_lock);
+	(void)lock;
+	spinlock_acquire(&cv->cv_lock);	
+        wchan_wakeall(cv->cv_wchan, &cv->cv_lock);
+	spinlock_release(&cv->cv_lock);
 }
 
