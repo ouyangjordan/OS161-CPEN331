@@ -172,14 +172,15 @@ flowerkiller(void *p, unsigned long arg)
 					lock_acquire(ropeMappingsArray[randomStake2Rope].rope_lock);
                 			if(ropeMappingsArray[randomStake2Rope].severed == false){
                         			randomStake2 = ropeMappingsArray[randomStake2Rope].stake;
-						ropeMappingsArray[randomStake1Rope].stake = randomStake2;
+						ropeMappingsArray[randomStake2Rope].stake = randomStake1;
+						lock_release(ropeMappingsArray[randomStake2Rope].rope_lock);
+                                                ropeMappingsArray[randomStake1Rope].stake = randomStake2;
 						lock_release(ropeMappingsArray[randomStake1Rope].rope_lock);
-                                                ropeMappingsArray[randomStake2Rope].stake = randomStake1;
                                                 kprintf("Lord FlowerKiller switched rope %d from stake %d to stake %d \n", randomStake1Rope , randomStake1, randomStake2);
                                                 kprintf("Lord FlowerKiller switched rope %d from stake %d to stake %d \n", randomStake2Rope , randomStake2, randomStake1);	
 	
 //						lock_release(ropeMappingsArray[randomStake1Rope].rope_lock);
-						lock_release(ropeMappingsArray[randomStake2Rope].rope_lock);
+	//					lock_release(ropeMappingsArray[randomStake2Rope].rope_lock);
 		
 						thread_yield();
 						continue;
