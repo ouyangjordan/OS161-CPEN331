@@ -29,7 +29,6 @@ static ropeMappings ropeMappingsArray[NROPES-1];
 /* Synchronization primitives */
 
 static struct lock *lock_ropes_left; //Lock to lock the integer containing how many ropes are left un-severed
-
 /*
  * Describe your design and any invariants or locking protocols
  * that must be maintained. Explain the exit conditions. How
@@ -174,20 +173,27 @@ flowerkiller(void *p, unsigned long arg)
                 			if(ropeMappingsArray[randomStake2Rope].severed == false){
                         			randomStake2 = ropeMappingsArray[randomStake2Rope].stake;
 						ropeMappingsArray[randomStake1Rope].stake = randomStake2;
+						lock_release(ropeMappingsArray[randomStake1Rope].rope_lock);
                                                 ropeMappingsArray[randomStake2Rope].stake = randomStake1;
                                                 kprintf("Lord FlowerKiller switched rope %d from stake %d to stake %d \n", randomStake1Rope , randomStake1, randomStake2);
                                                 kprintf("Lord FlowerKiller switched rope %d from stake %d to stake %d \n", randomStake2Rope , randomStake2, randomStake1);	
 	
-						lock_release(ropeMappingsArray[randomStake1Rope].rope_lock);
+//						lock_release(ropeMappingsArray[randomStake1Rope].rope_lock);
 						lock_release(ropeMappingsArray[randomStake2Rope].rope_lock);
+		
 						thread_yield();
+						continue;
                                        	} else {
 						//release these locks
 						lock_release(ropeMappingsArray[randomStake1Rope].rope_lock);
 						lock_release(ropeMappingsArray[randomStake2Rope].rope_lock);
+						thread_yield();
+						continue;
 					}
 				} else {
 					lock_release(ropeMappingsArray[randomStake1Rope].rope_lock);
+					thread_yield();
+					continue;
 				}
 			}
 		}
@@ -237,7 +243,6 @@ airballoon(int nargs, char **args)
 	(void)ropes_left;
 
 	lock_ropes_left = lock_create("lockRopesCount"); //Lock to decrement rope count when severing a rope
-	
 	for (i = 0; i < NROPES; i++){ //Initialize our rope datastructure that contains the ropes and stake mappings (initially 1-1 i.e rope 4 is attached to stake 4)
 		ropeMappingsArray[i] = (ropeMappings) {.stake = i, .severed = false, .rope_lock = lock_create("")};
 	}
