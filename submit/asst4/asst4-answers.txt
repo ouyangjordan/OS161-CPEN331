@@ -1,0 +1,32 @@
+Question 1: 	ELF magic numbers are eh.e_ident's first 4 bytes. They are defined as 3x7L,'E','L','F' in elf.h file.
+
+Question 2:	UIO_USERISPACE means the user process code. UIO_USERSPACE means user process data.
+
+Question 3:	Because there is an iovec be implemented in the uio struct that point to the destination in memory for reading. And at the meantime, the uio uses the address space of the current thread in order to read in user address space.
+
+Question 4:	Do not call vfs_close() will cause the memory leak since the file keeps unclosed.
+
+Question 5:	enter_new_process() forces the processor to switch into usermode. It is machine dependent.
+
+Question 6:	copyin and copyout are defined in vm/copyinout.c. memmove is defined in memmove.c. copyin and copyout are user/kernel memory copying functions. So, they cannot be implemented as memmovc.
+
+Question 7:	A empty user-supplied pointer for the current address.
+
+Question 8:	8
+
+Question 9:	4 bytes. Advancing the program counter.
+
+Question 10:	We want to prevent the kernel from going to the panic when user-level code hits a fatal fault.
+
+Question 11:	Further arguments must be fetched from the user-level stack, starting at sp+16 to skip over the slots for the registerized values.
+
+Question 12:	Loading the syscall number into v0, the register the
+ * kernel expects to find it in, and jump to the shared syscall code.
+
+Question 13:	beq a3, $0, 1f       /* if a3 is zero, call succeeded */
+
+Question 14:	arg0 in a0, arg1 in a2, arg2 in a3, arg3 in the stack sp+16 of user level.  The return value is stored at a0 and a1.
+
+Question 15:	Call vfs_open() to open a file. Call SYS_READ() to read a file.Call SYS_WRITE to write. Vnode is used in the kernel to represent an open file.
+
+Question 16:	 For the increase and decrease of counting manipulation. 
