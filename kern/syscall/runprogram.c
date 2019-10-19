@@ -44,6 +44,7 @@
 #include <vfs.h>
 #include <syscall.h>
 #include <test.h>
+#include <file.h>
 
 /*
  * Load program "progname" and start running it in usermode.
@@ -58,6 +59,9 @@ runprogram(char *progname)
 	struct vnode *v;
 	vaddr_t entrypoint, stackptr;
 	int result;
+	char * con_in = kstrdup("con:");
+	char * con_out = kstrdup("con:");
+	char * con_aerr = kstrdup("con:");
 
 	/* Open the file. */
 	result = vfs_open(progname, O_RDONLY, 0, &v);
@@ -79,6 +83,35 @@ runprogram(char *progname)
 	proc_setas(as);
 	as_activate();
 
+	//initialization for stdin, stdout, stdaerr
+	curproc -> p_filetable[0] = file_create();
+	curproc -> p_filetable[1] = file_create();
+	curproc -> p_filetable[2] = file_create();
+	//set the vnode for stdin, stdout, stdaerr
+	result = vfs_open(con_in, O_RDONLY, 0664, &curproc-> p_filetable[0]->file_vnode);
+	curproc-> p_filetable[0]->file_flag = O_RDONLY;
+	curproc-> p_filetable[0]->file_offset = 0;
+	curproc-> p_filetable[0]->count = 1;
+	if (result) {
+		vfs_close(curproc-> p_filetable[0]->file_vnode);
+		return result;
+	}
+	result = vfs_open(con_out, O_WRONLY, 0664, &curproc-> p_filetable[1]->file_vnode);
+	curproc-> p_filetable[1]->file_flag = O_WRONLY;
+	curproc-> p_filetable[1]->file_offset = 0;
+	curproc-> p_filetable[1]->count = 1;
+	if (result) {
+		vfs_close(curproc-> p_filetable[1]->file_vnode);
+		return result;
+	}
+	result = vfs_open(con_aerr, O_WRONLY, 0664, &curproc-> p_filetable[2]->file_vnode);
+	curproc-> p_filetable[2]->file_flag = O_WRONLY;
+	curproc-> p_filetable[2]->file_offset = 0;
+	curproc-> p_filetable[2]->count = 1;
+	if (result) {
+		vfs_close(curproc-> p_filetable[2]->file_vnode);
+		return result;
+	}
 	/* Load the executable. */
 	result = load_elf(v, &entrypoint);
 	if (result) {
@@ -106,4 +139,3 @@ runprogram(char *progname)
 	panic("enter_new_process returned\n");
 	return EINVAL;
 }
-

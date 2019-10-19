@@ -38,6 +38,10 @@
 
 #include <spinlock.h>
 #include <thread.h> /* required for struct threadarray */
+#include <file.h>
+#include <limits.h>
+
+
 
 struct addrspace;
 struct vnode;
@@ -49,6 +53,7 @@ struct proc {
 	char *p_name;			/* Name of this process */
 	struct spinlock p_lock;		/* Lock for this structure */
 	struct threadarray p_threads;	/* Threads in this process */
+  struct file* p_filetable[OPEN_MAX]; /*Filetable*/
 
 	/* VM */
 	struct addrspace *p_addrspace;	/* virtual address space */
