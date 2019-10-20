@@ -106,7 +106,6 @@ test_dup2()
 	{
 		err(1, "dup2() returned %d, expected %d\n", rv, dupfd);
 	}
-
 	rv = write(dupfd, writebuf, 40);
 	if (rv<0) {
 		err(1, "%s: write via duplicated fd", file);
@@ -261,10 +260,11 @@ simultaneous_write_test()
 	if (rv<0) {
 		err(1, "%s: write", file2);
 	}
-
+	
 	/* Rewind both files */
 	lseek_ret = lseek(fd1, -(40-seekpos), SEEK_CUR);
 	if (lseek_ret != seekpos) {
+		printf("%d %d",(int) lseek_ret, seekpos);
 		err(1, "%s: lseek", file1);
 	}
 

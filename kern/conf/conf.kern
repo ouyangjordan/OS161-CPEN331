@@ -376,11 +376,15 @@ file      vfs/devnull.c
 file      syscall/loadelf.c
 file      syscall/runprogram.c
 file      syscall/time_syscalls.c
-file	    syscall/open.c
-file	    syscall/file.c
+file	  syscall/open.c
+file	  syscall/file.c
 file      syscall/close.c
-file	    syscall/read.c
+file	  syscall/read.c
 file      syscall/write.c
+file	  syscall/lseek.c
+file	  syscall/dup2.c
+file	  syscall/chdir.c
+file	  syscall/__getcwd.c
 #
 # Startup and initialization
 #
