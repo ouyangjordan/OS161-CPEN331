@@ -35,7 +35,7 @@
 #include <thread.h>
 #include <current.h>
 #include <syscall.h>
-
+#include <copyinout.h>
 
 /*
  * System call dispatcher.
@@ -99,6 +99,8 @@ syscall(struct trapframe *tf)
 
 	retval = 0;
 
+	off_t retval64 = 0; //This retval is for lseek which needs a 64 bit return
+	int whence = 0; //for lseek
 	switch (callno) {
 	    case SYS_reboot:
 		err = sys_reboot(tf->tf_a0);
@@ -124,6 +126,22 @@ syscall(struct trapframe *tf)
 			case SYS_write:
 					err = sys_write(tf->tf_a0, (void *)tf->tf_a1, (size_t) tf->tf_a2, &retval);
 					break;
+
+			case SYS_lseek:
+				
+				copyin((const_userptr_t)(tf->tf_sp + 16), &whence, sizeof(int));
+				off_t *seek = (off_t *) &tf->tf_a2;
+				err = sys_lseek((int)tf->tf_a0, *seek, whence, &retval64);
+				break;
+			case SYS_dup2:
+				err = sys_dup2(tf->tf_a0, tf->tf_a1, &retval);
+				break;
+			case SYS_chdir:
+				err = sys_chdir((const char *)tf->tf_a0);
+				break;
+			case SYS___getcwd:
+				err = sys___getcwd((userptr_t)tf->tf_a0, tf->tf_a1, &retval);
+				break;
 	    /* Add stuff here */
 
 	    default:
@@ -141,7 +159,11 @@ syscall(struct trapframe *tf)
 		 */
 		tf->tf_v0 = err;
 		tf->tf_a3 = 1;      /* signal an error */
-	}
+	}else if (retval64 != 0) {
+			tf->tf_v0 = (int)(retval64 >> 32); /* high bits */
+			tf->tf_v1 = (int)(retval64 & 0xffffffff); /* low bits */
+			tf->tf_a3 = 0;  //signal no error	
+		}
 	else {
 		/* Success. */
 		tf->tf_v0 = retval;
