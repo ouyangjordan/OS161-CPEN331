@@ -26,12 +26,6 @@ ssize_t sys_write(int fd, const void *buf, size_t nbytes, int32_t *num_ret){
   int diff;
 
 
-  //check flag
-  int flag_checked = curproc->p_filetable[fd]->file_flag & O_ACCMODE;
-  if(flag_checked == O_RDONLY && flag_checked != O_RDWR){
-      *num_ret = -1;
-      return EBADF;
-  }
 
   //check if buf if valid
   if(buf == NULL){
@@ -47,6 +41,12 @@ ssize_t sys_write(int fd, const void *buf, size_t nbytes, int32_t *num_ret){
       return EBADF;
   }
 
+  //check flag
+  int flag_checked = curproc->p_filetable[fd]->file_flag & O_ACCMODE;
+  if(flag_checked == O_RDONLY && flag_checked != O_RDWR){
+      *num_ret = -1;
+      return EBADF;
+  }
 
   //keep atomic
   lock_acquire(curproc->p_filetable[fd]->file_lock);
