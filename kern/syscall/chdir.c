@@ -22,14 +22,15 @@ sys_chdir(const char *filepath){
 	char *newPath = kmalloc(__PATH_MAX);
 	int error = copyinstr((const_userptr_t)filepath, newPath, __PATH_MAX, NULL);
 	if (error) {
+		kfree(newPath);
 		return error;
 	}
 
-	int result = vfs_chdir((char *) filepath);
+	error = vfs_chdir((char *) filepath);
 
-
-    	if (result) {
-        	return result;
+	kfree(newPath);
+    	if (error) {
+        	return error;
     	}
 	return 0;
 }

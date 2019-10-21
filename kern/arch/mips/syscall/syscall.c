@@ -99,7 +99,7 @@ syscall(struct trapframe *tf)
 
 	retval = 0;
 
-	off_t retval64 = 0; //This retval is for lseek which needs a 64 bit return
+	off_t retval64 = -1; //This retval is for lseek which needs a 64 bit return
 	int whence = 0; //for lseek
 	switch (callno) {
 	    case SYS_reboot:
@@ -111,13 +111,13 @@ syscall(struct trapframe *tf)
 				 (userptr_t)tf->tf_a1);
 		break;
 
-      case SYS_open:
-          err = sys_open((const char *)tf->tf_a0, tf->tf_a1, (mode_t)tf->tf_a2, &retval);
-    break;
+      	    case SYS_open:
+          	err = sys_open((const char *)tf->tf_a0, tf->tf_a1, (mode_t)tf->tf_a2, &retval);
+    		break;
 
 			case SYS_close:
 					err = sys_close(tf->tf_a0, &retval);
-		break;
+					break;
 
 			case SYS_read:
 					err = sys_read(tf->tf_a0, (void *)tf->tf_a1, (size_t) tf->tf_a2, &retval);
@@ -128,10 +128,9 @@ syscall(struct trapframe *tf)
 					break;
 
 			case SYS_lseek:
-				
 				copyin((const_userptr_t)(tf->tf_sp + 16), &whence, sizeof(int));
-				off_t *seek = (off_t *) &tf->tf_a2;
-				err = sys_lseek((int)tf->tf_a0, *seek, whence, &retval64);
+				off_t seek = ((off_t)tf->tf_a2 << 32) | tf->tf_a3;
+				err = sys_lseek((int)tf->tf_a0, seek, whence, &retval64);
 				break;
 			case SYS_dup2:
 				err = sys_dup2(tf->tf_a0, tf->tf_a1, &retval);
@@ -159,9 +158,9 @@ syscall(struct trapframe *tf)
 		 */
 		tf->tf_v0 = err;
 		tf->tf_a3 = 1;      /* signal an error */
-	}else if (retval64 != 0) {
-			tf->tf_v0 = (int)(retval64 >> 32); /* high bits */
-			tf->tf_v1 = (int)(retval64 & 0xffffffff); /* low bits */
+	}else if (retval64 > -1) {
+			tf->tf_v0 = (retval64 >> 32); /* high bits */
+			tf->tf_v1 = (retval64 & 0xffffffff); /* low bits */
 			tf->tf_a3 = 0;  //signal no error	
 		}
 	else {

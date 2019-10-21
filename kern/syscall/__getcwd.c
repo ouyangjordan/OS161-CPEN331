@@ -17,7 +17,11 @@
 
 int sys___getcwd(userptr_t buf, size_t buflen, int *retval){
 
-
+	//Buffer cannot be null
+	if(buf == NULL){
+		*retval = -1;	
+		return EFAULT;
+	}
 	struct uio user;
 	struct iovec vec;
 
@@ -30,6 +34,15 @@ int sys___getcwd(userptr_t buf, size_t buflen, int *retval){
     	user.uio_segflg = UIO_USERSPACE;
     	user.uio_rw = UIO_READ;
     	user.uio_space = curproc->p_addrspace;
+
+	//if buffer is invalid
+
+	int error = vfs_getcwd(&user);
+    	if (error) {
+        	return error;
+    	}
+
 	*retval = buflen - user.uio_resid;
+
 	return 0;
 }
