@@ -23,9 +23,6 @@ ssize_t sys_read(int fd, void *buf, size_t buflen, int32_t *num_ret){
   int result;
   int diff;
 
-
-
-
   //check if buf if valid
   if(buf == NULL){
       *num_ret = -1;

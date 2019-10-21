@@ -26,7 +26,6 @@ ssize_t sys_write(int fd, const void *buf, size_t nbytes, int32_t *num_ret){
   int diff;
 
 
-
   //check if buf if valid
   if(buf == NULL){
       *num_ret = -1;

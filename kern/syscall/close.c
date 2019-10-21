@@ -15,7 +15,7 @@
 
 int sys_close(int fd, int32_t *num_ret){
 
-    if(fd <0 || fd>OPEN_MAX ||curproc->p_filetable[fd] == NULL){
+    if(fd <0 || fd>=OPEN_MAX ||curproc->p_filetable[fd] == NULL){
       *num_ret = -1;
       return EBADF;
     }
