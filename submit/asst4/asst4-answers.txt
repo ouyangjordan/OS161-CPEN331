@@ -1,6 +1,8 @@
 Question 1: 	ELF magic numbers are eh.e_ident's first 4 bytes. They are defined as 3x7L,'E','L','F' in elf.h file.
 
-Question 2:	UIO_USERISPACE means the user process code. UIO_USERSPACE means user process data.
+Question 2:	UIO_USERISPACE is a flag meaning the user process code is transferred between user and kernel . UIO_USERSPACE means user process data
+similar to UIO_USERISSPACE but it is not a flag but a signal. Use UIO_SYSSPACE when you want to indicate
+the code is transferred inside the kernel without transferring ot users.
 
 Question 3:	Because there is an iovec be implemented in the uio struct that point to the destination in memory for reading. And at the meantime, the uio uses the address space of the current thread in order to read in user address space.
 

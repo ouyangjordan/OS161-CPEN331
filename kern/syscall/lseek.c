@@ -26,6 +26,7 @@ sys_lseek(int fd, off_t pos, int whence, off_t *retval)
 	int err;
 	off_t futureOffset;
 	struct stat *stat = kmalloc(sizeof(struct stat));
+	
 	if (whence < 0 || whence > 2) { //Here whence is invalid
         	return EINVAL; 
 	}
