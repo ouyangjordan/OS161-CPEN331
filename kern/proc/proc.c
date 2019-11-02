@@ -94,7 +94,7 @@ proc_create(const char *name)
     }
 	proc->childprocs = array_create();
 	for(int i = 1; i < MAX_NUM_PROC; i++) {
-		if(procs[i] == NULL) {
+		if(procs[i] != NULL) {
 			procs[i] = proc;
 			proc->proc_pid = (pid_t)i;
 			break;
@@ -208,13 +208,13 @@ proc_destroy(struct proc *proc)
 void
 proc_bootstrap(void)
 {
-	kproc = proc_create("[kernel]");
-	if (kproc == NULL) {
-		panic("proc_create for kproc failed\n");
-	}
 	procs = kmalloc(sizeof(struct proc *)*MAX_NUM_PROC);
 	if(procs == NULL) {
 		panic("procs create failed\n");
+	}
+	kproc = proc_create("[kernel]");
+	if (kproc == NULL) {
+		panic("proc_create for kproc failed\n");
 	}
 }
 
