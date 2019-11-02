@@ -49,6 +49,8 @@
 #include <addrspace.h>
 #include <vnode.h>
 #include <array.h>
+#include <synch.h>
+
 
 /*
  * The process for the kernel; this holds all the kernel-only threads.
@@ -91,7 +93,7 @@ proc_create(const char *name)
         proc->p_filetable[i] = NULL;
     }
 	proc->childprocs = array_create();
-	for(int i = 2; i < MAX_NUM_PROC; i++) {
+	for(int i = 1; i < MAX_NUM_PROC; i++) {
 		if(procs[i] == NULL) {
 			procs[i] = proc;
 			proc->proc_pid = (pid_t)i;

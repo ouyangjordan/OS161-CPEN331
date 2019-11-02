@@ -36,6 +36,9 @@
 #include <current.h>
 #include <syscall.h>
 #include <copyinout.h>
+#include <proc.h>
+#include <addrspace.h>
+
 
 /*
  * System call dispatcher.
@@ -201,8 +204,21 @@ syscall(struct trapframe *tf)
  *
  * Thus, you can trash it and do things another way if you prefer.
  */
-void
-enter_forked_process(struct trapframe *tf)
-{
-	(void)tf;
-}
+ void
+ enter_forked_process(void *data1, unsigned long data2)
+ {
+
+ 	struct addrspace *my_as = (struct addrspace *)data2;
+   //allocate on the kernel's stack
+     struct trapframe *current_tf = (struct trapframe *)data1;
+
+     current_tf->tf_v0 = 0; //forked children returns 0
+     current_tf->tf_a3 = 0; //no error
+     current_tf->tf_epc += 4; //adjust program counter
+     proc_setas(my_as);
+     as_activate();
+     struct trapframe *final_tf;
+     memcpy(&final_tf, current_tf, sizeof(struct trapframe));
+     kfree(current_tf);
+     mips_usermode(final_tf);
+ }

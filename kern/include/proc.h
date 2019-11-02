@@ -54,7 +54,7 @@ struct proc {
 	char *p_name;			/* Name of this process */
 	struct spinlock p_lock;		/* Lock for this structure */
 	struct lock *proc_lock;
-	struct lock *proc_cv;
+	struct cv *proc_cv;
 	struct threadarray p_threads;	/* Threads in this process */
   struct file* p_filetable[OPEN_MAX]; /*Filetable*/
   struct proc *pproc;
