@@ -385,6 +385,8 @@ file	  syscall/lseek.c
 file	  syscall/dup2.c
 file	  syscall/chdir.c
 file	  syscall/__getcwd.c
+file    syscall/fork.c
+
 #
 # Startup and initialization
 #

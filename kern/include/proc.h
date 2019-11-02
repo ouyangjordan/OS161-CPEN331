@@ -29,7 +29,7 @@
 
 #ifndef _PROC_H_
 #define _PROC_H_
-
+#define MAX_NUM_PROC 512
 /*
  * Definition of a process.
  *
@@ -40,6 +40,7 @@
 #include <thread.h> /* required for struct threadarray */
 #include <file.h>
 #include <limits.h>
+#include <array.h>
 
 
 
@@ -52,9 +53,11 @@ struct vnode;
 struct proc {
 	char *p_name;			/* Name of this process */
 	struct spinlock p_lock;		/* Lock for this structure */
+	struct lock *proc_lock;
+	struct lock *proc_cv;
 	struct threadarray p_threads;	/* Threads in this process */
   struct file* p_filetable[OPEN_MAX]; /*Filetable*/
-
+  struct proc *pproc;
 	/* VM */
 	struct addrspace *p_addrspace;	/* virtual address space */
 
@@ -62,7 +65,15 @@ struct proc {
 	struct vnode *p_cwd;		/* current working directory */
 
 	/* add more material here as needed */
+	pid_t proc_pid;
+	pid_t parent_pid;
+	int done;
+	int num_running;
+  struct array *childprocs;
 };
+
+struct proc **procs;
+
 
 /* This is the process structure for the kernel and for kernel-only threads. */
 extern struct proc *kproc;

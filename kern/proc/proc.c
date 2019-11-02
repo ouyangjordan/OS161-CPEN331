@@ -48,11 +48,14 @@
 #include <current.h>
 #include <addrspace.h>
 #include <vnode.h>
+#include <array.h>
 
 /*
  * The process for the kernel; this holds all the kernel-only threads.
  */
 struct proc *kproc;
+
+
 
 /*
  * Create a proc structure.
@@ -75,16 +78,30 @@ proc_create(const char *name)
 
 	threadarray_init(&proc->p_threads);
 	spinlock_init(&proc->p_lock);
+	proc->proc_lock = lock_create("proc_lock");
+	proc->proc_cv = cv_create("proc_cv");
 
 	/* VM fields */
 	proc->p_addrspace = NULL;
 
 	/* VFS fields */
 	proc->p_cwd = NULL;
-    
+
     for(int i = 0; i < OPEN_MAX; i++) {
         proc->p_filetable[i] = NULL;
     }
+	proc->childprocs = array_create();
+	for(int i = 2; i < MAX_NUM_PROC; i++) {
+		if(procs[i] == NULL) {
+			procs[i] = proc;
+			proc->proc_pid = (pid_t)i;
+			break;
+		}
+	}
+	proc->parent_pid = 0;
+	proc->done = 0;
+	proc->num_running = 0;
+
 
 	return proc;
 }
@@ -168,7 +185,14 @@ proc_destroy(struct proc *proc)
 		}
 		as_destroy(as);
 	}
+	lock_destroy(proc->proc_lock);
+	cv_destroy(proc->proc_cv);
 
+	for(int i = 0; i < OPEN_MAX; i++) {
+			file_cleanup(proc->p_filetable[i]);
+	}
+	kfree(proc->p_filetable);
+	array_destroy(proc->childprocs);
 	threadarray_cleanup(&proc->p_threads);
 	spinlock_cleanup(&proc->p_lock);
 
@@ -185,6 +209,10 @@ proc_bootstrap(void)
 	kproc = proc_create("[kernel]");
 	if (kproc == NULL) {
 		panic("proc_create for kproc failed\n");
+	}
+	procs = kmalloc(sizeof(struct proc *)*MAX_NUM_PROC);
+	if(procs == NULL) {
+		panic("procs create failed\n");
 	}
 }
 

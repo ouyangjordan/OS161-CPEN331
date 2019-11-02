@@ -70,4 +70,7 @@ off_t sys_lseek(int fd, off_t pos, int whence, off_t *retval);
 int sys_dup2(int oldfd, int newfd, int *retval);
 int sys_chdir(const char *filepath);
 int sys___getcwd(userptr_t buf, size_t buflen, int *retval);
+int sys_fork(struct trapframe *tf, pid_t *num_ret);
+//int sys_waitpid(pid_t pid, int *stat_loc, int options, pid_t *num_ret);
+pid_t sys_getpid(void);
 #endif /* _SYSCALL_H_ */

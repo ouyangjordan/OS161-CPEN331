@@ -141,7 +141,18 @@ syscall(struct trapframe *tf)
 			case SYS___getcwd:
 				err = sys___getcwd((userptr_t)tf->tf_a0, tf->tf_a1, &retval);
 				break;
-	    /* Add stuff here */
+	    /* Add stuff here*/
+			case SYS_fork:
+				err = sys_fork(tf,(pid_t *)&retval);
+				break;
+			case SYS_getpid:
+				err = 0;
+				retval = (int32_t) sys_getpid();
+				break;
+			//case SYS_waitpid:
+				//err = sys_waitpid((pid_t) tf -> tf_a0, (int *) tf -> tf_a1, (int) tf -> tf_a2, (pid_t *) &retval);
+			//	break;
+
 
 	    default:
 		kprintf("Unknown syscall %d\n", callno);
@@ -161,7 +172,7 @@ syscall(struct trapframe *tf)
 	}else if (retval64 > -1) {
 			tf->tf_v0 = (retval64 >> 32); /* high bits */
 			tf->tf_v1 = (retval64 & 0xffffffff); /* low bits */
-			tf->tf_a3 = 0;  //signal no error	
+			tf->tf_a3 = 0;  //signal no error
 		}
 	else {
 		/* Success. */
