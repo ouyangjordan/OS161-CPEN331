@@ -20,42 +20,42 @@ pid_t sys_getpid(void) {
   //return the id of the current process
   return curproc->proc_pid;
 }
-/*
-int sys_waitpid(pid_t pid, int *stat_loc, int options, pid_t *num_ret) {
-  //Check badcalls
-  if (pid == 0) {
-    *num_ret = -1;
-    return ECHILD;
-  }
 
-  //Check if the there is no options
-  if (options != 0) {
-  *num_ret = -1;
-  return EINVAL;
-  }
-  bool flag;
-  int index;
-  //Check if the pid exists
-  for(int i = 0; i < curproc->childprocs->num && !flag; i++) {
-    if((pid_t)array_get(curproc->childprocs, i) == pid) {
-      flag = 1;
-      index = i;
-      break;
-    }
-  }
-  if(!flag) {
-    *num_ret = -1l
-    return ECHILD;
-  }
-  if(!curproc->procs[index]->done) {
-    lock_acquire(curproc->procs[index]->proc_lock);
-    cv_wait(curproc->procs[index]->proc_cv, curproc->procs[index]->proc_lock);
-    lock_release(curproc->procs[index]->proc_lock);
-  }
-
-  *num_ret = pid;
-  return 0;
-}*/
+// int sys_waitpid(pid_t pid, int *stat_loc, int options, pid_t *num_ret) {
+//   //Check badcalls
+//   if (pid == 0) {
+//     *num_ret = -1;
+//     return ECHILD;
+//   }
+//
+//   //Check if the there is no options
+//   if (options != 0) {
+//   *num_ret = -1;
+//   return EINVAL;
+//   }
+//   bool flag;
+//   int index;
+//   //Check if the pid exists
+//   for(int i = 0; i < curproc->childprocs->num && !flag; i++) {
+//     if((pid_t)array_get(curproc->childprocs, i) == pid) {
+//       flag = 1;
+//       index = i;
+//       break;
+//     }
+//   }
+//   if(!flag) {
+//     *num_ret = -1l
+//     return ECHILD;
+//   }
+//   if(!curproc->procs[index]->done) {
+//     lock_acquire(curproc->procs[index]->proc_lock);
+//     cv_wait(curproc->procs[index]->proc_cv, curproc->procs[index]->proc_lock);
+//     lock_release(curproc->procs[index]->proc_lock);
+//   }
+//
+//   *num_ret = pid;
+//   return 0;
+// }
 
 
 //fork() creates a new process by duplicating the calling process.
@@ -70,7 +70,6 @@ int sys_fork(struct trapframe *tf, pid_t *num_ret) {
   array_add(curproc->childprocs, childproc, &index_ret);
   KASSERT(array_get(curproc->childprocs, index_ret) == childproc);
   childproc->parent_pid = curproc->proc_pid;
-  childproc->pproc = curproc;
 
   struct trapframe *childtf = kmalloc(sizeof(struct trapframe));
 
@@ -116,3 +115,39 @@ int sys_fork(struct trapframe *tf, pid_t *num_ret) {
 //     kfree(trapframe);
 //     mips_usermode(&final_tf);
 // }
+
+
+
+void sys__exit(int exitcode){
+  (void)exitcode;
+  for(int i = 1; i < MAX_NUM_PROC; i++) {
+    if(procs[i] != NULL){
+      if(procs[i]->parent_pid == curproc->proc_pid){
+        procs[i]->parent_pid = 0;
+      }
+    }
+  }
+
+
+  // pid_tbl[curproc->p_id]->exited = true;
+  // pid_tbl[curproc->p_id]->exitcode = _MKWAIT_EXIT(exitcode);
+  //
+  // pid_tbl[curproc->p_id]->id_process = NULL;
+  //
+  //
+  // if(pid_tbl[curproc->p_id]->parentPid == 0){
+  //   delete_pid(curproc->p_id);
+  // }
+  // else{
+  //   pid_cv_broadcast(curproc->p_id);
+  // }
+
+  //struct proc * my_proc = curproc;
+  proc_remthread(curthread);
+  proc_addthread(kproc, curthread);
+  //kprintf("Get to there");
+  //proc_destroy(my_proc);
+  //my_proc = NULL;
+  thread_exit();
+
+}

@@ -187,12 +187,12 @@ lock_acquire(struct lock *lock)
 	KASSERT(lock != NULL);
 	spinlock_acquire(&lock->lk_lock);
 	KASSERT(lock->lk_holder != curthread);
-	
+
 	while (lock->lk_holder != NULL) {
 		/* As in the semaphore. */
                 wchan_sleep(lock->lk_wchan, &lock->lk_lock);
 	}
-	
+
 	lock->lk_holder = curthread;
 	spinlock_release(&lock->lk_lock);
 }
@@ -212,7 +212,7 @@ bool
 lock_do_i_hold(struct lock *lock)
 {	//Ensures action does not block an interrupt handler and that lock is not null
 	bool ret;
- 
+
 	DEBUGASSERT(lock != NULL);
 	spinlock_acquire(&lock->lk_lock);
 	ret = (lock->lk_holder == curthread);
@@ -266,7 +266,7 @@ cv_destroy(struct cv *cv)
 
 void
 cv_wait(struct cv *cv, struct lock *lock)
-{	//Uses functions in thread c to fufill requirements	
+{	//Uses functions in thread c to fufill requirements
 	spinlock_acquire(&cv->cv_lock);
 	lock_release(lock);
 	wchan_sleep(cv->cv_wchan, &cv->cv_lock);
@@ -281,23 +281,22 @@ cv_wait(struct cv *cv, struct lock *lock)
 	spinlock_release(&cv->cv_lock);
 	lock_acquire(lock);
 
-}	
+}
 
 void
 cv_signal(struct cv *cv, struct lock *lock)
 {
 	(void)lock;
-        spinlock_acquire(&cv->cv_lock);     
+        spinlock_acquire(&cv->cv_lock);
         wchan_wakeone(cv->cv_wchan, &cv->cv_lock);
         spinlock_release(&cv->cv_lock);
 }
 
 void
 cv_broadcast(struct cv *cv, struct lock *lock)
-{	
+{
 	(void)lock;
-	spinlock_acquire(&cv->cv_lock);	
+	spinlock_acquire(&cv->cv_lock);
         wchan_wakeall(cv->cv_wchan, &cv->cv_lock);
 	spinlock_release(&cv->cv_lock);
 }
-
