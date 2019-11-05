@@ -219,9 +219,9 @@ syscall(struct trapframe *tf)
      current_tf->tf_a3 = 0; //no error
      current_tf->tf_epc += 4; //adjust program counter
      proc_setas(my_as);
-     as_activate();
      struct trapframe final_tf;
      memcpy(&final_tf, current_tf, sizeof(struct trapframe));
      kfree(current_tf);
+		 as_activate();
      mips_usermode(&final_tf);
  }

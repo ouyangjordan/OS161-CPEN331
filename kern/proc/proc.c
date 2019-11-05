@@ -103,6 +103,7 @@ proc_create(const char *name)
 	proc->parent_pid = 0;
 	proc->done = 0;
 	proc->num_running = 0;
+	proc->s_exit = 0;
 
 
 	return proc;
@@ -189,13 +190,13 @@ proc_destroy(struct proc *proc)
 	}
 
 
-	for(int i = 0; i < OPEN_MAX; i++) {
-			file_cleanup(proc->p_filetable[i]);
-	}
-	kfree(proc->p_filetable);
-	lock_destroy(proc->proc_lock);
-	cv_destroy(proc->proc_cv);
-	array_destroy(proc->childprocs);
+	// for(int i = 0; i < OPEN_MAX; i++) {
+	// 		file_cleanup(proc->p_filetable[i]);
+	// }
+	// kfree(proc->p_filetable);
+	// lock_destroy(proc->proc_lock);
+	// cv_destroy(proc->proc_cv);
+	// array_destroy(proc->childprocs);
 	threadarray_cleanup(&proc->p_threads);
 	spinlock_cleanup(&proc->p_lock);
 

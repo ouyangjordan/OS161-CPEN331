@@ -69,6 +69,7 @@ struct proc {
 	pid_t parent_pid;
 	int done;
 	int num_running;
+	int s_exit;
   struct array *childprocs;
 };
 

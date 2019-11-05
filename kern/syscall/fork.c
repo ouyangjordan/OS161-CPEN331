@@ -24,7 +24,7 @@ pid_t sys_getpid(void) {
 
 int sys_waitpid(pid_t pid, int *stat_loc, int options, pid_t *num_ret) {
   //Check badcalls
-  (void)stat_loc;
+
   if (pid == 0) {
     *num_ret = -1;
     return ECHILD;
@@ -57,6 +57,7 @@ int sys_waitpid(pid_t pid, int *stat_loc, int options, pid_t *num_ret) {
   }
 
   *num_ret = pid;
+  *stat_loc = temp_proc -> s_exit;
   return 0;
 }
 
@@ -145,12 +146,12 @@ void sys__exit(int exitcode){
   //   pid_cv_broadcast(curproc->p_id);
   // }
 
-  //struct proc * my_proc = curproc;
+  struct proc * my_proc = curproc;
   proc_remthread(curthread);
   proc_addthread(kproc, curthread);
   //kprintf("Get to there");
-  //proc_destroy(my_proc);
-  //my_proc = NULL;
+  proc_destroy(my_proc);
+  my_proc = NULL;
   thread_exit();
 
 }
