@@ -15,47 +15,50 @@
 #include <kern/unistd.h>
 #include <syscall.h>
 #include <cdefs.h> /* for __DEAD */
+#include <synch.h>
 
 pid_t sys_getpid(void) {
   //return the id of the current process
   return curproc->proc_pid;
 }
 
-// int sys_waitpid(pid_t pid, int *stat_loc, int options, pid_t *num_ret) {
-//   //Check badcalls
-//   if (pid == 0) {
-//     *num_ret = -1;
-//     return ECHILD;
-//   }
-//
-//   //Check if the there is no options
-//   if (options != 0) {
-//   *num_ret = -1;
-//   return EINVAL;
-//   }
-//   bool flag;
-//   int index;
-//   //Check if the pid exists
-//   for(int i = 0; i < curproc->childprocs->num && !flag; i++) {
-//     if((pid_t)array_get(curproc->childprocs, i) == pid) {
-//       flag = 1;
-//       index = i;
-//       break;
-//     }
-//   }
-//   if(!flag) {
-//     *num_ret = -1l
-//     return ECHILD;
-//   }
-//   if(!curproc->procs[index]->done) {
-//     lock_acquire(curproc->procs[index]->proc_lock);
-//     cv_wait(curproc->procs[index]->proc_cv, curproc->procs[index]->proc_lock);
-//     lock_release(curproc->procs[index]->proc_lock);
-//   }
-//
-//   *num_ret = pid;
-//   return 0;
-// }
+int sys_waitpid(pid_t pid, int *stat_loc, int options, pid_t *num_ret) {
+  //Check badcalls
+  (void)stat_loc;
+  if (pid == 0) {
+    *num_ret = -1;
+    return ECHILD;
+  }
+
+  //Check if the there is no options
+  if (options != 0) {
+  *num_ret = -1;
+  return EINVAL;
+  }
+  bool flag = 0;
+  unsigned index;
+  //Check if the pid exists
+  for(unsigned i = 0; i < curproc->childprocs->num && !flag; i++) {
+    if((pid_t)array_get(curproc->childprocs, i) == pid) {
+      flag = 1;
+      index = i;
+      break;
+    }
+  }
+  if(!flag) {
+    *num_ret = -1;
+    return ECHILD;
+  }
+  struct proc *temp_proc = array_get(curproc->childprocs, index);
+  if(!temp_proc->done) {
+    lock_acquire(temp_proc->proc_lock);
+    cv_wait(temp_proc->proc_cv, temp_proc->proc_lock);
+    lock_release(temp_proc->proc_lock);
+  }
+
+  *num_ret = pid;
+  return 0;
+}
 
 
 //fork() creates a new process by duplicating the calling process.
