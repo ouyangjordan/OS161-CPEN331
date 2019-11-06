@@ -41,17 +41,16 @@ int sys_waitpid(pid_t pid, int *stat_loc, int options, pid_t *num_ret) {
     *num_ret = -1;
     return ECHILD;
   }
-
+  lock_acquire(proc_lock);
   int* done = array_get(donearray, (unsigned)pid);
   if(!done) {
-    struct proc *childproc = proc_create_runprogram("child");
+    struct proc *childproc;
     childproc = array_get(procs,(unsigned)pid);
-    lock_acquire(childproc->proc_lock);
-    cv_wait(childproc->proc_cv, childproc->proc_lock);
-    lock_release(childproc->proc_lock);
+    cv_wait(childproc->proc_cv, proc_lock);
   }
+  lock_release(proc_lock);
   *num_ret = pid;
-  *stat_loc = (int)array_get(exitcodearray, (unsigned)pid);
+  *stat_loc = *((int *)array_get(exitcodearray, (unsigned)pid));
   array_set(procs, (unsigned)pid, NULL);
   array_set(exitcodearray, (unsigned)pid, NULL);
   array_set(donearray, (unsigned)pid, NULL);
@@ -73,6 +72,9 @@ int sys_fork(struct trapframe *tf, pid_t *num_ret) {
   array_add(donearray, NULL, &index_ret);
   KASSERT(array_get(procs, index_ret) == childproc);
   childproc->proc_pid = (pid_t)index_ret;
+  //pid_t pid = kproc->proc_pid;
+  KASSERT(array_get(procs, 0) == NULL);
+  KASSERT(array_get(procs, 1) == kproc);
   childproc->parent_pid = curproc->proc_pid;
 
   struct trapframe *childtf = kmalloc(sizeof(struct trapframe));
@@ -94,7 +96,7 @@ int sys_fork(struct trapframe *tf, pid_t *num_ret) {
   if(err) {
     return err;
   }
-
+//(void)pid;
   *num_ret = childproc->proc_pid;
   return 0;
 }
@@ -126,7 +128,8 @@ void sys__exit(int exitcode){
   struct proc *proc;
   int* temp_exit = kmalloc(sizeof(int));
   int* temp_done = kmalloc(sizeof(int));
-
+  pid_t id = curproc->parent_pid;
+  (void)id;
   for(unsigned i = 1; i < array_num(procs); i++) {
     proc = array_get(procs, i);
     if(proc != NULL && proc->parent_pid == curproc->proc_pid){
@@ -139,6 +142,7 @@ void sys__exit(int exitcode){
     array_set(donearray, (unsigned)curproc->proc_pid, NULL);
   }
   else{
+    lock_acquire(proc_lock);
   curproc->done = 1;
   //add exitcode to exitcodearray
   *temp_exit = _MKWAIT_EXIT(exitcode);
@@ -146,9 +150,11 @@ void sys__exit(int exitcode){
   KASSERT(array_get(exitcodearray, (unsigned)curproc->proc_pid) == temp_exit);
 
   //add done_status to donearray
-  *temp_done = proc->done;
-  array_set(exitcodearray, (unsigned)curproc->proc_pid, temp_done);
-  KASSERT(array_get(exitcodearray, (unsigned)curproc->proc_pid) == temp_done);
+  *temp_done = curproc->done;
+  array_set(donearray, (unsigned)curproc->proc_pid, temp_done);
+  KASSERT(array_get(donearray, (unsigned)curproc->proc_pid) == temp_done);
+  cv_broadcast(curproc->proc_cv, proc_lock);
+  lock_release(proc_lock);
   }
   // pid_tbl[curproc->p_id]->exited = true;
   // pid_tbl[curproc->p_id]->exitcode = _MKWAIT_EXIT(exitcode);

@@ -53,7 +53,6 @@ struct vnode;
 struct proc {
 	char *p_name;			/* Name of this process */
 	struct spinlock p_lock;		/* Lock for this structure */
-	struct lock *proc_lock;
 	struct cv *proc_cv;
 	struct threadarray p_threads;	/* Threads in this process */
   struct file* p_filetable[OPEN_MAX]; /*Filetable*/
@@ -75,7 +74,7 @@ struct proc {
 struct array *procs;
 struct array *exitcodearray;
 struct array *donearray;
-
+struct lock *proc_lock;
 
 /* This is the process structure for the kernel and for kernel-only threads. */
 extern struct proc *kproc;

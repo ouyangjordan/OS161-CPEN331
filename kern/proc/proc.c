@@ -80,7 +80,7 @@ proc_create(const char *name)
 
 	threadarray_init(&proc->p_threads);
 	spinlock_init(&proc->p_lock);
-	proc->proc_lock = lock_create("proc_lock");
+
 	proc->proc_cv = cv_create("proc_cv");
 
 	/* VM fields */
@@ -100,7 +100,7 @@ proc_create(const char *name)
 	// 		break;
 	// 	}
 	// }
-	proc->parent_pid = 0;
+
 	proc->done = 0;
 	proc->num_running = 0;
 	proc->s_exit = 0;
@@ -237,11 +237,13 @@ procsarray_bootstrap(void)
 	array_add(procs, NULL, &index_ret);
 	array_add(exitcodearray, NULL, &index_ret);
 	array_add(donearray, NULL, &index_ret);
-	array_add(procs, kproc, &index_ret);
+	array_add(procs, curproc, &index_ret);
 	array_add(exitcodearray, NULL, &index_ret);
 	array_add(donearray, NULL, &index_ret);
-	KASSERT(array_get(procs, index_ret) == kproc);
-	kproc->proc_pid = (pid_t)index_ret;
+	KASSERT(array_get(procs, index_ret) == curproc);
+	curproc->proc_pid = (pid_t)index_ret;
+	KASSERT(curproc->proc_pid == 1);
+	proc_lock = lock_create("proc_lock");
 	// for(int i = 1; i < MAX_NUM_PROC; i++) {
 	// 	array_set(procs, i, NULL);
 	// }
