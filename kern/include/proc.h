@@ -57,7 +57,6 @@ struct proc {
 	struct cv *proc_cv;
 	struct threadarray p_threads;	/* Threads in this process */
   struct file* p_filetable[OPEN_MAX]; /*Filetable*/
-  struct proc *pproc;
 	/* VM */
 	struct addrspace *p_addrspace;	/* virtual address space */
 
@@ -70,10 +69,12 @@ struct proc {
 	int done;
 	int num_running;
 	int s_exit;
-  struct array *childprocs;
+  // struct array *childprocs;
 };
 
-struct proc **procs;
+struct array *procs;
+struct array *exitcodearray;
+struct array *donearray;
 
 
 /* This is the process structure for the kernel and for kernel-only threads. */
@@ -81,6 +82,9 @@ extern struct proc *kproc;
 
 /* Call once during system startup to allocate data structures. */
 void proc_bootstrap(void);
+
+//Initialize all the arraies
+void procsarray_bootstrap(void);
 
 /* Create a fresh process for use by runprogram(). */
 struct proc *proc_create_runprogram(const char *name);

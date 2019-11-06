@@ -30,34 +30,31 @@ int sys_waitpid(pid_t pid, int *stat_loc, int options, pid_t *num_ret) {
     return ECHILD;
   }
 
-  //Check if the there is no options
+  //Check if the there is no option
   if (options != 0) {
   *num_ret = -1;
   return EINVAL;
   }
-  bool flag = 0;
-  unsigned index;
+
   //Check if the pid exists
-  for(unsigned i = 0; i < curproc->childprocs->num && !flag; i++) {
-    if((pid_t)array_get(curproc->childprocs, i) == pid) {
-      flag = 1;
-      index = i;
-      break;
-    }
-  }
-  if(!flag) {
+  if((unsigned)pid > array_num(procs) || (int)pid <= 0) {
     *num_ret = -1;
     return ECHILD;
   }
-  struct proc *temp_proc = array_get(curproc->childprocs, index);
-  if(!temp_proc->done) {
-    lock_acquire(temp_proc->proc_lock);
-    cv_wait(temp_proc->proc_cv, temp_proc->proc_lock);
-    lock_release(temp_proc->proc_lock);
-  }
 
+  int* done = array_get(donearray, (unsigned)pid);
+  if(!done) {
+    struct proc *childproc = proc_create_runprogram("child");
+    childproc = array_get(procs,(unsigned)pid);
+    lock_acquire(childproc->proc_lock);
+    cv_wait(childproc->proc_cv, childproc->proc_lock);
+    lock_release(childproc->proc_lock);
+  }
   *num_ret = pid;
-  *stat_loc = temp_proc -> s_exit;
+  *stat_loc = (int)array_get(exitcodearray, (unsigned)pid);
+  array_set(procs, (unsigned)pid, NULL);
+  array_set(exitcodearray, (unsigned)pid, NULL);
+  array_set(donearray, (unsigned)pid, NULL);
   return 0;
 }
 
@@ -71,8 +68,11 @@ int sys_fork(struct trapframe *tf, pid_t *num_ret) {
     return ENOMEM;
   }
   unsigned index_ret;
-  array_add(curproc->childprocs, childproc, &index_ret);
-  KASSERT(array_get(curproc->childprocs, index_ret) == childproc);
+  array_add(procs, childproc, &index_ret);
+  array_add(exitcodearray, NULL, &index_ret);
+  array_add(donearray, NULL, &index_ret);
+  KASSERT(array_get(procs, index_ret) == childproc);
+  childproc->proc_pid = (pid_t)index_ret;
   childproc->parent_pid = curproc->proc_pid;
 
   struct trapframe *childtf = kmalloc(sizeof(struct trapframe));
@@ -123,16 +123,33 @@ int sys_fork(struct trapframe *tf, pid_t *num_ret) {
 
 
 void sys__exit(int exitcode){
-  (void)exitcode;
-  for(int i = 1; i < MAX_NUM_PROC; i++) {
-    if(procs[i] != NULL){
-      if(procs[i]->parent_pid == curproc->proc_pid){
-        procs[i]->parent_pid = 0;
-      }
+  struct proc *proc;
+  int* temp_exit = kmalloc(sizeof(int));
+  int* temp_done = kmalloc(sizeof(int));
+
+  for(unsigned i = 1; i < array_num(procs); i++) {
+    proc = array_get(procs, i);
+    if(proc != NULL && proc->parent_pid == curproc->proc_pid){
+        proc->parent_pid = 0;
     }
   }
+  if(curproc->parent_pid == 0){
+    array_set(procs, (unsigned)curproc->proc_pid, NULL);
+    array_set(exitcodearray, (unsigned)curproc->proc_pid, NULL);
+    array_set(donearray, (unsigned)curproc->proc_pid, NULL);
+  }
+  else{
+  curproc->done = 1;
+  //add exitcode to exitcodearray
+  *temp_exit = _MKWAIT_EXIT(exitcode);
+  array_set(exitcodearray, (unsigned)curproc->proc_pid, temp_exit);
+  KASSERT(array_get(exitcodearray, (unsigned)curproc->proc_pid) == temp_exit);
 
-
+  //add done_status to donearray
+  *temp_done = proc->done;
+  array_set(exitcodearray, (unsigned)curproc->proc_pid, temp_done);
+  KASSERT(array_get(exitcodearray, (unsigned)curproc->proc_pid) == temp_done);
+  }
   // pid_tbl[curproc->p_id]->exited = true;
   // pid_tbl[curproc->p_id]->exitcode = _MKWAIT_EXIT(exitcode);
   //

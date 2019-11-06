@@ -92,14 +92,14 @@ proc_create(const char *name)
     for(int i = 0; i < OPEN_MAX; i++) {
         proc->p_filetable[i] = NULL;
     }
-	proc->childprocs = array_create();
-	for(int i = 1; i < MAX_NUM_PROC; i++) {
-		if(procs[i] != NULL) {
-			procs[i] = proc;
-			proc->proc_pid = (pid_t)i;
-			break;
-		}
-	}
+	// proc->childprocs = array_create();
+	// for(int i = 1; i < MAX_NUM_PROC; i++) {
+	// 	if(procs[i] != NULL) {
+	// 		procs[i] = proc;
+	// 		proc->proc_pid = (pid_t)i;
+	// 		break;
+	// 	}
+	// }
 	proc->parent_pid = 0;
 	proc->done = 0;
 	proc->num_running = 0;
@@ -210,14 +210,48 @@ proc_destroy(struct proc *proc)
 void
 proc_bootstrap(void)
 {
-	procs = kmalloc(sizeof(struct proc *)*MAX_NUM_PROC);
-	if(procs == NULL) {
-		panic("procs create failed\n");
-	}
 	kproc = proc_create("[kernel]");
 	if (kproc == NULL) {
 		panic("proc_create for kproc failed\n");
 	}
+}
+
+void
+procsarray_bootstrap(void)
+{
+	unsigned index_ret;
+	// struct proc *proc;
+	// proc = proc_create("Initialize");
+	procs = array_create();
+	if(procs == NULL) {
+		panic("array of procs create failed\n");
+	}
+	exitcodearray = array_create();
+	if(exitcodearray == NULL) {
+		panic("array of exitcode create failed\n");
+	}
+	donearray = array_create();
+	if(donearray == NULL) {
+		panic("array of exitcode create failed\n");
+	}
+	array_add(procs, NULL, &index_ret);
+	array_add(exitcodearray, NULL, &index_ret);
+	array_add(donearray, NULL, &index_ret);
+	array_add(procs, kproc, &index_ret);
+	array_add(exitcodearray, NULL, &index_ret);
+	array_add(donearray, NULL, &index_ret);
+	KASSERT(array_get(procs, index_ret) == kproc);
+	kproc->proc_pid = (pid_t)index_ret;
+	// for(int i = 1; i < MAX_NUM_PROC; i++) {
+	// 	array_set(procs, i, NULL);
+	// }
+	// for(int i = 1; i < MAX_NUM_PROC; i++) {
+	// 	if(array_get(procs, i) == NULL) {
+	// 		proc->proc_pid = (pid_t)i;
+	// 		array_set(procs, i, proc);
+	// 		break;
+	// 	}
+	// }
 }
 
 /*
