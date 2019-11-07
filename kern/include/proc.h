@@ -54,6 +54,7 @@ struct proc {
 	char *p_name;			/* Name of this process */
 	struct spinlock p_lock;		/* Lock for this structure */
 	struct cv *proc_cv;
+	pid_t proc_pid;
 	struct threadarray p_threads;	/* Threads in this process */
   struct file* p_filetable[OPEN_MAX]; /*Filetable*/
 	/* VM */
@@ -63,18 +64,17 @@ struct proc {
 	struct vnode *p_cwd;		/* current working directory */
 
 	/* add more material here as needed */
-	pid_t proc_pid;
-	pid_t parent_pid;
-	int done;
-	int num_running;
-	int s_exit;
-  // struct array *childprocs;
+
 };
 
-struct array *procs;
-struct array *exitcodearray;
-struct array *donearray;
-struct lock *proc_lock;
+struct proc_helper {
+	struct proc *proc;
+	pid_t parent_pid;
+	int exitcode;
+	int done;
+};
+struct array *procs; //process table structed by an array
+struct lock *proc_lock; //the global lock
 
 /* This is the process structure for the kernel and for kernel-only threads. */
 extern struct proc *kproc;

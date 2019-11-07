@@ -68,6 +68,7 @@
  * It copies the program name because runprogram destroys the copy
  * it gets by passing it to vfs_open().
  */
+
 static
 void
 cmd_progthread(void *ptr, unsigned long nargs)
@@ -125,7 +126,6 @@ common_prog(int nargs, char **args)
 	if (proc == NULL) {
 		return ENOMEM;
 	}
-
 	result = thread_fork(args[0] /* thread name */,
 			proc /* new process */,
 			cmd_progthread /* thread function */,
@@ -140,7 +140,11 @@ common_prog(int nargs, char **args)
 	 * The new process will be destroyed when the program exits...
 	 * once you write the code for handling that.
 	 */
-
+	 pid_t t;
+	 int tt;
+	 if(proc->proc_pid > 1) {
+		 sys_waitpid(proc->proc_pid, &tt, 0, &t);
+	 }
 	return 0;
 }
 
@@ -712,8 +716,5 @@ menu(char *args)
 		kprintf("OS/161 kernel [? for menu]: ");
 		kgets(buf, sizeof(buf));
 		menu_execute(buf, 0);
-		while (1){
-			continue;
-		}
 	}
 }

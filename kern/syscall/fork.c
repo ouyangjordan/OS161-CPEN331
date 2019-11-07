@@ -24,7 +24,7 @@ pid_t sys_getpid(void) {
 
 int sys_waitpid(pid_t pid, int *stat_loc, int options, pid_t *num_ret) {
   //Check badcalls
-
+  //PID cannot be zero.
   if (pid == 0) {
     *num_ret = -1;
     return ECHILD;
@@ -36,24 +36,21 @@ int sys_waitpid(pid_t pid, int *stat_loc, int options, pid_t *num_ret) {
   return EINVAL;
   }
 
-  //Check if the pid exists
+  //Check if the pid is in the range
   if((unsigned)pid > array_num(procs) || (int)pid <= 0) {
     *num_ret = -1;
     return ECHILD;
   }
   lock_acquire(proc_lock);
-  int* done = array_get(donearray, (unsigned)pid);
-  if(!done) {
-    struct proc *childproc;
-    childproc = array_get(procs,(unsigned)pid);
-    cv_wait(childproc->proc_cv, proc_lock);
+  struct proc_helper *temp_helper = array_get(procs, (unsigned)pid);
+  if(!temp_helper->done) {
+    cv_wait(temp_helper->proc->proc_cv, proc_lock);
   }
   lock_release(proc_lock);
   *num_ret = pid;
-  *stat_loc = *((int *)array_get(exitcodearray, (unsigned)pid));
+  *stat_loc = (temp_helper->exitcode);
   array_set(procs, (unsigned)pid, NULL);
-  array_set(exitcodearray, (unsigned)pid, NULL);
-  array_set(donearray, (unsigned)pid, NULL);
+  kfree(temp_helper);
   return 0;
 }
 
@@ -66,16 +63,14 @@ int sys_fork(struct trapframe *tf, pid_t *num_ret) {
   if (childproc == NULL){
     return ENOMEM;
   }
+  struct proc_helper *my_helper = kmalloc(sizeof(struct proc_helper));
+  my_helper->proc = childproc;
+  my_helper->parent_pid = curproc->proc_pid;
+  my_helper->done = 0;
   unsigned index_ret;
-  array_add(procs, childproc, &index_ret);
-  array_add(exitcodearray, NULL, &index_ret);
-  array_add(donearray, NULL, &index_ret);
-  KASSERT(array_get(procs, index_ret) == childproc);
+  array_add(procs, my_helper, &index_ret);
+  KASSERT(array_get(procs, index_ret) == my_helper);
   childproc->proc_pid = (pid_t)index_ret;
-  //pid_t pid = kproc->proc_pid;
-  KASSERT(array_get(procs, 0) == NULL);
-  KASSERT(array_get(procs, 1) == kproc);
-  childproc->parent_pid = curproc->proc_pid;
 
   struct trapframe *childtf = kmalloc(sizeof(struct trapframe));
 
@@ -103,72 +98,27 @@ int sys_fork(struct trapframe *tf, pid_t *num_ret) {
 
 
 
-// void
-// entrance(void *trapframe, unsigned long addrspace)
-// {
-//   strcut addrspace *my_as = (struct addrspace *)addrspace;
-//   //allocate on the kernel's stack
-//     struct trapframe *current_tf = (struct trapframe *)trapframe;
-//
-//     current_tf.tf_v0 = 0; //forked children returns 0
-//     current_tf.tf_a3 = 0; //no error
-//     current_tf.tf_epc += 4; //adjust program counter
-//     proc_setas(my_as);
-//     as_activate();
-//     mips_usermode(&current_tf);
-//     struct trapframe final_tf;
-//     memcpy(&final_tf, current_tf, sizeof(struct trapframe));
-//     kfree(trapframe);
-//     mips_usermode(&final_tf);
-// }
-
-
-
 void sys__exit(int exitcode){
-  struct proc *proc;
-  int* temp_exit = kmalloc(sizeof(int));
-  int* temp_done = kmalloc(sizeof(int));
-  pid_t id = curproc->parent_pid;
-  (void)id;
+  struct proc_helper* helper = array_get(procs, (unsigned)curproc->proc_pid);
+  struct proc_helper* temp;
+  pid_t t;
+  int tt;
   for(unsigned i = 1; i < array_num(procs); i++) {
-    proc = array_get(procs, i);
-    if(proc != NULL && proc->parent_pid == curproc->proc_pid){
-        proc->parent_pid = 0;
+    temp = array_get(procs, i);
+    if(temp != NULL){
+      if(temp->proc != NULL ){
+        if(temp->parent_pid == curproc->proc_pid)
+          sys_waitpid(temp->proc->proc_pid, &tt, 0, &t);
+      }
     }
   }
-  if(curproc->parent_pid == 0){
-    array_set(procs, (unsigned)curproc->proc_pid, NULL);
-    array_set(exitcodearray, (unsigned)curproc->proc_pid, NULL);
-    array_set(donearray, (unsigned)curproc->proc_pid, NULL);
-  }
-  else{
     lock_acquire(proc_lock);
-  curproc->done = 1;
-  //add exitcode to exitcodearray
-  *temp_exit = _MKWAIT_EXIT(exitcode);
-  array_set(exitcodearray, (unsigned)curproc->proc_pid, temp_exit);
-  KASSERT(array_get(exitcodearray, (unsigned)curproc->proc_pid) == temp_exit);
+    helper->done = 1;
 
-  //add done_status to donearray
-  *temp_done = curproc->done;
-  array_set(donearray, (unsigned)curproc->proc_pid, temp_done);
-  KASSERT(array_get(donearray, (unsigned)curproc->proc_pid) == temp_done);
+  helper->exitcode = _MKWAIT_EXIT(exitcode);
+
   cv_broadcast(curproc->proc_cv, proc_lock);
   lock_release(proc_lock);
-  }
-  // pid_tbl[curproc->p_id]->exited = true;
-  // pid_tbl[curproc->p_id]->exitcode = _MKWAIT_EXIT(exitcode);
-  //
-  // pid_tbl[curproc->p_id]->id_process = NULL;
-  //
-  //
-  // if(pid_tbl[curproc->p_id]->parentPid == 0){
-  //   delete_pid(curproc->p_id);
-  // }
-  // else{
-  //   pid_cv_broadcast(curproc->p_id);
-  // }
-
   struct proc * my_proc = curproc;
   proc_remthread(curthread);
   proc_addthread(kproc, curthread);
@@ -176,5 +126,4 @@ void sys__exit(int exitcode){
   proc_destroy(my_proc);
   my_proc = NULL;
   thread_exit();
-
 }

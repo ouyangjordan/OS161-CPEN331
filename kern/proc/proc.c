@@ -89,23 +89,10 @@ proc_create(const char *name)
 	/* VFS fields */
 	proc->p_cwd = NULL;
 
+	//Initialize each entry in filetable as NULL
     for(int i = 0; i < OPEN_MAX; i++) {
         proc->p_filetable[i] = NULL;
     }
-	// proc->childprocs = array_create();
-	// for(int i = 1; i < MAX_NUM_PROC; i++) {
-	// 	if(procs[i] != NULL) {
-	// 		procs[i] = proc;
-	// 		proc->proc_pid = (pid_t)i;
-	// 		break;
-	// 	}
-	// }
-
-	proc->done = 0;
-	proc->num_running = 0;
-	proc->s_exit = 0;
-
-
 	return proc;
 }
 
@@ -199,7 +186,10 @@ proc_destroy(struct proc *proc)
 	// array_destroy(proc->childprocs);
 	threadarray_cleanup(&proc->p_threads);
 	spinlock_cleanup(&proc->p_lock);
-
+	struct proc_helper* temp = array_get(procs, (unsigned)proc->proc_pid);
+	if(temp != NULL) {
+	temp->proc = NULL;
+	}
 	kfree(proc->p_name);
 	kfree(proc);
 }
@@ -226,21 +216,14 @@ procsarray_bootstrap(void)
 	if(procs == NULL) {
 		panic("array of procs create failed\n");
 	}
-	exitcodearray = array_create();
-	if(exitcodearray == NULL) {
-		panic("array of exitcode create failed\n");
-	}
-	donearray = array_create();
-	if(donearray == NULL) {
-		panic("array of exitcode create failed\n");
-	}
-	array_add(procs, NULL, &index_ret);
-	array_add(exitcodearray, NULL, &index_ret);
-	array_add(donearray, NULL, &index_ret);
-	array_add(procs, curproc, &index_ret);
-	array_add(exitcodearray, NULL, &index_ret);
-	array_add(donearray, NULL, &index_ret);
-	KASSERT(array_get(procs, index_ret) == curproc);
+	struct proc_helper *helper = kmalloc(sizeof(struct proc_helper));
+	helper->proc = curproc;
+	helper->parent_pid = 0;
+	helper->exitcode = 0;
+	helper->done = 0;
+	array_add(procs, helper, &index_ret);
+	array_add(procs, helper, &index_ret);
+	KASSERT(array_get(procs, index_ret) == helper);
 	curproc->proc_pid = (pid_t)index_ret;
 	KASSERT(curproc->proc_pid == 1);
 	proc_lock = lock_create("proc_lock");
@@ -266,11 +249,17 @@ struct proc *
 proc_create_runprogram(const char *name)
 {
 	struct proc *newproc;
-
+	unsigned index_ret;
 	newproc = proc_create(name);
 	if (newproc == NULL) {
 		return NULL;
 	}
+	struct proc_helper *helper = kmalloc(sizeof(struct proc_helper));
+	helper->proc = newproc;
+	helper->done = 0;
+	helper->parent_pid = 0;
+	array_add(procs, helper, &index_ret);
+	newproc->proc_pid = (pid_t) index_ret;
 
 	/* VM fields */
 
