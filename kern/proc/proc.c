@@ -81,6 +81,7 @@ proc_create(const char *name)
 	threadarray_init(&proc->p_threads);
 	spinlock_init(&proc->p_lock);
 
+	//initialize the conditional variable of proc
 	proc->proc_cv = cv_create("proc_cv");
 
 	/* VM fields */
@@ -175,17 +176,9 @@ proc_destroy(struct proc *proc)
 		}
 		as_destroy(as);
 	}
-
-
-	// for(int i = 0; i < OPEN_MAX; i++) {
-	// 		file_cleanup(proc->p_filetable[i]);
-	// }
-	// kfree(proc->p_filetable);
-	// lock_destroy(proc->proc_lock);
-	// cv_destroy(proc->proc_cv);
-	// array_destroy(proc->childprocs);
 	threadarray_cleanup(&proc->p_threads);
 	spinlock_cleanup(&proc->p_lock);
+	//set the current proc_helper as NULL
 	struct proc_helper* temp = array_get(procs, (unsigned)proc->proc_pid);
 	if(temp != NULL) {
 	temp->proc = NULL;
@@ -206,37 +199,33 @@ proc_bootstrap(void)
 	}
 }
 
+
+//bootsstrap for the global variable procs
 void
 procsarray_bootstrap(void)
 {
-	unsigned index_ret;
-	// struct proc *proc;
-	// proc = proc_create("Initialize");
+	unsigned index_ret; //take the return index from array function
+	//initialize the procs array, which store proc_helpers inside
 	procs = array_create();
+	//check if the array create successfully
 	if(procs == NULL) {
 		panic("array of procs create failed\n");
 	}
 	struct proc_helper *helper = kmalloc(sizeof(struct proc_helper));
+	//initialization for helper variables
 	helper->proc = curproc;
 	helper->parent_pid = 0;
 	helper->exitcode = 0;
 	helper->done = 0;
-	array_add(procs, helper, &index_ret);
+	//Set the procs[0] as empty and procs[1] as kproc
+	array_add(procs, NULL, &index_ret);
 	array_add(procs, helper, &index_ret);
 	KASSERT(array_get(procs, index_ret) == helper);
+	//Set the kprocs id as 1
 	curproc->proc_pid = (pid_t)index_ret;
 	KASSERT(curproc->proc_pid == 1);
+	//Initialize the lock
 	proc_lock = lock_create("proc_lock");
-	// for(int i = 1; i < MAX_NUM_PROC; i++) {
-	// 	array_set(procs, i, NULL);
-	// }
-	// for(int i = 1; i < MAX_NUM_PROC; i++) {
-	// 	if(array_get(procs, i) == NULL) {
-	// 		proc->proc_pid = (pid_t)i;
-	// 		array_set(procs, i, proc);
-	// 		break;
-	// 	}
-	// }
 }
 
 /*
@@ -259,6 +248,7 @@ proc_create_runprogram(const char *name)
 	helper->done = 0;
 	helper->parent_pid = 0;
 	array_add(procs, helper, &index_ret);
+	//set the proc id as its index
 	newproc->proc_pid = (pid_t) index_ret;
 
 	/* VM fields */

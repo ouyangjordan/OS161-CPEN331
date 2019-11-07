@@ -214,11 +214,15 @@ syscall(struct trapframe *tf)
  	struct addrspace *my_as = (struct addrspace *)data2;
    //allocate on the kernel's stack
      struct trapframe *current_tf = (struct trapframe *)data1;
-
-     current_tf->tf_v0 = 0; //forked children returns 0
-     current_tf->tf_a3 = 0; //no error
-     current_tf->tf_epc += 4; //adjust program counter
+		 //forked children returns 0
+     current_tf->tf_v0 = 0;
+		 //no error
+     current_tf->tf_a3 = 0;
+		 //adjust program counter
+     current_tf->tf_epc += 4;
+		 //set addressspace
      proc_setas(my_as);
+		 //copy the trapframe to userland
      struct trapframe final_tf;
      memcpy(&final_tf, current_tf, sizeof(struct trapframe));
      kfree(current_tf);

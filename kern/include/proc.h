@@ -62,11 +62,9 @@ struct proc {
 
 	/* VFS */
 	struct vnode *p_cwd;		/* current working directory */
-
-	/* add more material here as needed */
-
 };
 
+//A helper that includes a proc, its parent's id, its exitcode and its status for done
 struct proc_helper {
 	struct proc *proc;
 	pid_t parent_pid;

@@ -140,6 +140,8 @@ common_prog(int nargs, char **args)
 	 * The new process will be destroyed when the program exits...
 	 * once you write the code for handling that.
 	 */
+
+	 //restart the kernel after one cycle 
 	 pid_t t;
 	 int tt;
 	 if(proc->proc_pid > 1) {
