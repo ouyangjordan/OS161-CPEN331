@@ -44,6 +44,8 @@
 #include "opt-synchprobs.h"
 #include "opt-sfs.h"
 #include "opt-net.h"
+#include <vm.h>
+
 
 /*
  * In-kernel menu and command dispatcher.
@@ -141,7 +143,7 @@ common_prog(int nargs, char **args)
 	 * once you write the code for handling that.
 	 */
 
-	 //restart the kernel after one cycle 
+	 //restart the kernel after one cycle
 	 pid_t t;
 	 int tt;
 	 if(proc->proc_pid > 1) {

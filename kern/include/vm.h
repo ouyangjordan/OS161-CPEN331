@@ -38,13 +38,29 @@
 
 
 #include <machine/vm.h>
+#include <spinlock.h>
 
 /* Fault-type arguments to vm_fault() */
 #define VM_FAULT_READ        0    /* A read was attempted */
 #define VM_FAULT_WRITE       1    /* A write was attempted */
 #define VM_FAULT_READONLY    2    /* A write to a readonly page was attempted*/
 
+unsigned num_pages;
 
+
+struct coremap {
+  struct entries* cm_entries;
+};
+struct spinlock cm_lock;
+struct coremap* my_coremap;
+unsigned initialized; 
+
+
+struct entries {
+  volatile unsigned used:1;
+  volatile unsigned first_page:1;
+  volatile unsigned last_page:1;
+};
 /* Initialization function */
 void vm_bootstrap(void);
 

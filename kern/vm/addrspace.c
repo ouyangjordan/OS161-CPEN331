@@ -139,7 +139,7 @@ as_define_region(struct addrspace *as, vaddr_t vaddr, size_t sz,
 	(void)readable;
 	(void)writeable;
 	(void)executable;
-	return EUNIMP;
+	return 0;
 }
 
 int
@@ -179,3 +179,7 @@ as_define_stack(struct addrspace *as, vaddr_t *stackptr)
 	return 0;
 }
 
+
+struct addrspace *curproc_getas(void) {
+	return NULL;
+}
