@@ -51,9 +51,8 @@ unsigned num_pages;
 struct coremap {
   struct entries* cm_entries;
 };
-struct spinlock cm_lock;
-struct coremap* my_coremap;
-unsigned initialized; 
+struct coremap my_coremap;
+
 
 
 struct entries {
