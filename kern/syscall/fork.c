@@ -16,7 +16,12 @@
 #include <syscall.h>
 #include <cdefs.h> /* for __DEAD */
 #include <synch.h>
+#include <vfs.h>
+#include <vnode.h>
 
+#define O_RDONLY      0
+#define INVAL_PTR (void *)0x40000000  
+#define KERN_PTR (void *)0x80000000  
 pid_t sys_getpid(void) {
   //return the id of the current process
   return curproc->proc_pid;
@@ -139,4 +144,143 @@ void sys__exit(int exitcode){
   proc_destroy(my_proc);
   my_proc = NULL;
   thread_exit();
+}
+
+int sys_execv(const char *prog, char **args){
+	
+	int errReturn = 0; //Return value check to see if there are invalid returns
+	struct vnode *v;
+	if (!prog || (void *)prog >= INVAL_PTR || (void *)args <= INVAL_PTR || args == NULL || (void*) args >= KERN_PTR ) {
+		return EFAULT; //check that the pointer addresses are valid
+	}
+
+	//Copy program name to this array
+    	char *pname = (char *) kmalloc(strlen(prog)+1);
+	size_t sizingForPath;  
+	
+	errReturn = copyinstr((const_userptr_t)prog, pname, PATH_MAX, &sizingForPath);
+  	if(errReturn)
+    	{
+        	kfree(pname);
+        	return errReturn;
+    	}
+
+    	int argc = 0; //argument counter
+
+	//Count how many arguments are in the args	
+    	while(args[argc] != NULL)
+    	{
+		if((void *)args[argc] >= INVAL_PTR){
+			return EFAULT; //if the argument pointers point to an invalid memory area
+		}
+        	argc = argc + 1;
+    	} 
+
+	//The copied in arguments		
+	char **argv = (char **)kmalloc((argc + 1) * sizeof(char *));
+
+    	for(int i = 0; i < argc; i++)
+    	{
+        	size_t len = strlen(args[i]) + 1;
+        	argv[i] = (char *)kmalloc(len * sizeof(char));
+        	errReturn = copyin((const_userptr_t)args[i],argv[i],len * sizeof(char));
+        	if(errReturn)
+        	{
+            		kfree(pname);
+			deallocateMemory(i + 1, argv); //case where memory is already alocated
+            		return errReturn;
+        	}        
+    	}
+   
+ 
+	argv[argc] = NULL;
+	errReturn = vfs_open(pname, O_RDONLY, 0, &v);
+
+	if (errReturn) {
+        	kfree(pname);
+		deallocateMemory(argc, argv);
+        	vfs_close(v);
+		return errReturn;
+	}
+	
+	//create address space
+	struct addrspace *as = as_create();
+    	if(as == NULL)
+    	{
+        	kfree(pname);
+		deallocateMemory(argc, argv);
+        	vfs_close(v);
+        	return ENOMEM;
+    	}
+
+    	struct addrspace *oldas = proc_setas(as);
+	//to delete addressspace when needed
+
+	vaddr_t entrypoint, stackptr;
+   
+    	errReturn = load_elf(v,&entrypoint);
+	if(errReturn)
+    	{
+        	kfree(pname);
+		deallocateMemory(argc, argv);
+        	as_deactivate();
+        	as = proc_setas(oldas);
+        	as_destroy(as);
+        	vfs_close(v);
+        	return errReturn;
+    	}
+
+
+	vfs_close(v);
+	kfree(pname);
+
+    	errReturn = as_define_stack(as,&stackptr);
+	if(errReturn)
+    	{	
+		deallocateMemory(argc,argv);
+        	as_deactivate();
+        	as = proc_setas(oldas);
+        	as_destroy(as);
+        	return errReturn;
+    	}
+
+       
+
+    	vaddr_t *argumentPtrs = (vaddr_t *)kmalloc((argc + 1) * sizeof(vaddr_t));
+	for(int i = argc-1; i >= 0; i--)
+    	{
+        	size_t curArgLen = strlen(argv[i]) + 1; 
+		size_t argLen = ROUNDUP(curArgLen,4);
+        	stackptr -= (argLen * sizeof(char));
+        	errReturn = copyout((void *) argv[i], (userptr_t)stackptr, curArgLen);
+        	argumentPtrs[i] = stackptr;        
+    	} 	   
+        
+    	argumentPtrs[argc] = (vaddr_t)NULL;
+    
+    	for(int i = argc; i >= 0; i--)
+    	{
+        	stackptr -= sizeof(vaddr_t);
+        	errReturn = copyout((void *) &argumentPtrs[i], ((userptr_t)stackptr),sizeof(vaddr_t));
+    	}	
+    
+    	vaddr_t argumentvPtr = stackptr;
+    	vaddr_t offset = ROUNDUP(USERSTACK - stackptr,8);
+    	stackptr = USERSTACK - offset;
+
+	deallocateMemory(argc, argv);
+	as_destroy(oldas);
+    	as_activate();
+	enter_new_process(argc, (userptr_t)argumentvPtr, NULL, stackptr, entrypoint);
+	
+	return EINVAL;
+}
+
+void deallocateMemory(int argc, char **argv){
+	
+	for(int i = 0; i < argc; ++i)
+        {
+        	kfree(argv[i]);
+        }
+	kfree(argv);
 }
