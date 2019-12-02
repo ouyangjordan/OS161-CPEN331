@@ -52,8 +52,12 @@ as_create(void)
 	/*
 	 * Initialize as needed.
 	 */
-	 as->entries1 = NULL;
-
+	 as->vtable_level1 = NULL;
+	 as->space_table = NULL;
+	 as->as_heap_base = (vaddr_t) 0;
+	 as->as_heap_tail = (vaddr_t) 0;
+	 as->as_stack_base = (vaddr_t) 0;
+	 as->as_stack_tail = (vaddr_t) 0;
 
 	return as;
 }
@@ -192,14 +196,14 @@ as_define_stack(struct addrspace *as, vaddr_t *stackptr)
 // unsigned vaddr3 = ((unsigned)faultaddress >> 5) & 0x1F;
 // unsigned vaddr4 = (unsigned)faultaddress & 0x1F;
 //
-// if(v_entries1[vaddr1])->v_entries2 == NULL) {
-//   v_entries1[vaddr1]->v_entries2 = kmalloc(sizeof(struct v_entries2));
+// if(v_vtable_levels1[vaddr1])->v_vtable_levels2 == NULL) {
+//   v_vtable_levels1[vaddr1]->v_vtable_levels2 = kmalloc(sizeof(struct v_vtable_levels2));
 // }
-// if(v_entries2[vaddr2]->v_entries3 == NULL) {
-//   v_entries2[vaddr2]->v_entries3 = kmalloc(sizeof(struct v_entries3));
+// if(v_vtable_levels2[vaddr2]->v_vtable_levels3 == NULL) {
+//   v_vtable_levels2[vaddr2]->v_vtable_levels3 = kmalloc(sizeof(struct v_vtable_levels3));
 // }
-// if(v_entries3[vaddr3]->v_entries4 == NULL) {
-//   v_entries3[vaddr3]->v_entries4 = kmalloc(sizeof(struct v_entries3));
+// if(v_vtable_levels3[vaddr3]->v_vtable_levels4 == NULL) {
+//   v_vtable_levels3[vaddr3]->v_vtable_levels4 = kmalloc(sizeof(struct v_vtable_levels3));
 // }
 struct addrspace *curproc_getas(void) {
 	return NULL;

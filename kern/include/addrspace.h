@@ -48,19 +48,25 @@ struct vnode;
  * You write this.
  */
 
- struct v_entries1 {
-   struct v_entries2* v_entries2;
+ struct vtable_level1 {
+   struct vtable_level2* vtable_level2;
  };
 
- struct v_entries2{
-   struct v_entries3* v_entries3;
+ struct vtable_level2{
+   struct vtable_level3* vtable_level3;
  };
- struct v_entries3{
-   struct v_entries4* v_entries4;
+ struct vtable_level3{
+   struct vtable_level4* vtable_level4;
  };
- struct v_entries4{
+ struct vtable_level4{
    paddr_t* padddr;
  };
+
+struct space {
+    vaddr_t vaddr_base;
+    paddr_t paddr_base;
+    size_t npages;
+}
 
 struct addrspace {
 #if OPT_DUMBVM
@@ -73,8 +79,12 @@ struct addrspace {
         paddr_t as_stackpbase;
 #else
         /* Put stuff here for your VM system */
-        struct v_entries1* entries1;
-        
+        vaddr_t as_heap_base;
+        vaddr_t as_heap_tail;
+        vaddr_t as_stack_base;
+        vaddr_t as_stack_tail;
+        struct vtable_level1* entrie_level1;
+        struct space* space_table;
 #endif
 };
 
