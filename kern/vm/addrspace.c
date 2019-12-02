@@ -52,6 +52,8 @@ as_create(void)
 	/*
 	 * Initialize as needed.
 	 */
+	 as->entries1 = NULL;
+
 
 	return as;
 }
@@ -60,6 +62,8 @@ int
 as_copy(struct addrspace *old, struct addrspace **ret)
 {
 	struct addrspace *newas;
+	unsigned space;
+	unsigned i;
 
 	newas = as_create();
 	if (newas==NULL) {
@@ -69,6 +73,7 @@ as_copy(struct addrspace *old, struct addrspace **ret)
 	/*
 	 * Write this.
 	 */
+	 space =
 
 	(void)old;
 
@@ -180,6 +185,22 @@ as_define_stack(struct addrspace *as, vaddr_t *stackptr)
 }
 
 
+
+
+// unsigned vaddr1 = (unsigned)faultaddress >> 15;
+// unsigned vaddr2 = ((unsigned)faultaddress >> 10) & 0x1F;
+// unsigned vaddr3 = ((unsigned)faultaddress >> 5) & 0x1F;
+// unsigned vaddr4 = (unsigned)faultaddress & 0x1F;
+//
+// if(v_entries1[vaddr1])->v_entries2 == NULL) {
+//   v_entries1[vaddr1]->v_entries2 = kmalloc(sizeof(struct v_entries2));
+// }
+// if(v_entries2[vaddr2]->v_entries3 == NULL) {
+//   v_entries2[vaddr2]->v_entries3 = kmalloc(sizeof(struct v_entries3));
+// }
+// if(v_entries3[vaddr3]->v_entries4 == NULL) {
+//   v_entries3[vaddr3]->v_entries4 = kmalloc(sizeof(struct v_entries3));
+// }
 struct addrspace *curproc_getas(void) {
 	return NULL;
 }

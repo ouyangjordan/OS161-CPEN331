@@ -48,6 +48,20 @@ struct vnode;
  * You write this.
  */
 
+ struct v_entries1 {
+   struct v_entries2* v_entries2;
+ };
+
+ struct v_entries2{
+   struct v_entries3* v_entries3;
+ };
+ struct v_entries3{
+   struct v_entries4* v_entries4;
+ };
+ struct v_entries4{
+   paddr_t* padddr;
+ };
+
 struct addrspace {
 #if OPT_DUMBVM
         vaddr_t as_vbase1;
@@ -59,6 +73,8 @@ struct addrspace {
         paddr_t as_stackpbase;
 #else
         /* Put stuff here for your VM system */
+        struct v_entries1* entries1;
+        
 #endif
 };
 
