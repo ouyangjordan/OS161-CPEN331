@@ -68,7 +68,8 @@ mallocthread(void *sm, unsigned long num)
 	void *oldptr2=NULL;
 	int i;
 
-//	kprintf("If I add these print statements here it passes km2 \n");
+	kprintf("If I add these print statements here it passes km2 \n");
+	//This print statement makes our code pass km2
 	for (i=0; i<NTRIES; i++) {
  		ptr = kmalloc(ITEMSIZE);
 		if (ptr==NULL) {
