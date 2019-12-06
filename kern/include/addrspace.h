@@ -66,7 +66,7 @@ struct space {
     vaddr_t vaddr_base;
     paddr_t paddr_base;
     size_t npages;
-}
+};
 
 struct addrspace {
 #if OPT_DUMBVM

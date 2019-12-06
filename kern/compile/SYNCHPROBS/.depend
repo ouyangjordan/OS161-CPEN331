@@ -409,6 +409,91 @@ airballoon.o: ../../synchprobs/airballoon.c ../../include/types.h \
  ../../include/threadlist.h includelinks/machine/thread.h \
  ../../include/setjmp.h includelinks/kern/machine/setjmp.h \
  ../../include/test.h ../../include/synch.h
+chdir.o: ../../syscall/chdir.c ../../include/cdefs.h \
+ ../../include/kern/unistd.h ../../include/types.h \
+ ../../include/kern/types.h includelinks/kern/machine/types.h \
+ includelinks/machine/types.h ../../include/vfs.h ../../include/array.h \
+ ../../include/lib.h opt-noasserts.h ../../include/file.h \
+ ../../include/kern/limits.h ../../include/vnode.h \
+ ../../include/spinlock.h includelinks/machine/spinlock.h \
+ ../../include/kern/fcntl.h ../../include/syscall.h ../../include/synch.h \
+ ../../include/limits.h ../../include/kern/errno.h \
+ ../../include/current.h includelinks/machine/current.h \
+ ../../include/thread.h ../../include/threadlist.h \
+ includelinks/machine/thread.h ../../include/setjmp.h \
+ includelinks/kern/machine/setjmp.h ../../include/proc.h \
+ ../../include/copyinout.h ../../include/stat.h ../../include/kern/stat.h \
+ ../../include/kern/stattypes.h
+close.o: ../../syscall/close.c ../../include/cdefs.h \
+ ../../include/kern/unistd.h ../../include/types.h \
+ ../../include/kern/types.h includelinks/kern/machine/types.h \
+ includelinks/machine/types.h ../../include/vfs.h ../../include/array.h \
+ ../../include/lib.h opt-noasserts.h ../../include/file.h \
+ ../../include/kern/limits.h ../../include/vnode.h \
+ ../../include/spinlock.h includelinks/machine/spinlock.h \
+ ../../include/kern/fcntl.h ../../include/syscall.h ../../include/synch.h \
+ ../../include/current.h includelinks/machine/current.h \
+ ../../include/thread.h ../../include/threadlist.h \
+ includelinks/machine/thread.h ../../include/setjmp.h \
+ includelinks/kern/machine/setjmp.h ../../include/limits.h \
+ ../../include/kern/errno.h ../../include/proc.h
+dup2.o: ../../syscall/dup2.c ../../include/cdefs.h \
+ ../../include/kern/unistd.h ../../include/types.h \
+ ../../include/kern/types.h includelinks/kern/machine/types.h \
+ includelinks/machine/types.h ../../include/vfs.h ../../include/array.h \
+ ../../include/lib.h opt-noasserts.h ../../include/file.h \
+ ../../include/kern/limits.h ../../include/vnode.h \
+ ../../include/spinlock.h includelinks/machine/spinlock.h \
+ ../../include/kern/fcntl.h ../../include/syscall.h ../../include/synch.h \
+ ../../include/limits.h ../../include/kern/errno.h \
+ ../../include/current.h includelinks/machine/current.h \
+ ../../include/thread.h ../../include/threadlist.h \
+ includelinks/machine/thread.h ../../include/setjmp.h \
+ includelinks/kern/machine/setjmp.h ../../include/proc.h \
+ ../../include/copyinout.h ../../include/stat.h ../../include/kern/stat.h \
+ ../../include/kern/stattypes.h
+file.o: ../../syscall/file.c ../../include/kern/unistd.h \
+ ../../include/file.h ../../include/kern/limits.h ../../include/types.h \
+ ../../include/kern/types.h includelinks/kern/machine/types.h \
+ includelinks/machine/types.h ../../include/vnode.h \
+ ../../include/spinlock.h ../../include/cdefs.h \
+ includelinks/machine/spinlock.h ../../include/thread.h \
+ ../../include/array.h ../../include/lib.h opt-noasserts.h \
+ ../../include/threadlist.h includelinks/machine/thread.h \
+ ../../include/setjmp.h includelinks/kern/machine/setjmp.h \
+ ../../include/synch.h
+fork.o: ../../syscall/fork.c ../../include/types.h \
+ ../../include/kern/types.h includelinks/kern/machine/types.h \
+ includelinks/machine/types.h ../../include/spl.h ../../include/cdefs.h \
+ ../../include/proc.h ../../include/spinlock.h \
+ includelinks/machine/spinlock.h ../../include/thread.h \
+ ../../include/array.h ../../include/lib.h opt-noasserts.h \
+ ../../include/threadlist.h includelinks/machine/thread.h \
+ ../../include/setjmp.h includelinks/kern/machine/setjmp.h \
+ ../../include/file.h ../../include/kern/limits.h \
+ ../../include/kern/unistd.h ../../include/vnode.h ../../include/limits.h \
+ ../../include/current.h includelinks/machine/current.h \
+ ../../include/addrspace.h ../../include/vm.h includelinks/machine/vm.h \
+ opt-dumbvm.h ../../include/copyinout.h ../../include/kern/syscall.h \
+ ../../include/kern/errno.h ../../include/kern/wait.h \
+ includelinks/mips/trapframe.h ../../include/syscall.h \
+ ../../include/synch.h ../../include/vfs.h
+__getcwd.o: ../../syscall/__getcwd.c ../../include/cdefs.h \
+ ../../include/kern/unistd.h ../../include/types.h \
+ ../../include/kern/types.h includelinks/kern/machine/types.h \
+ includelinks/machine/types.h ../../include/vfs.h ../../include/array.h \
+ ../../include/lib.h opt-noasserts.h ../../include/file.h \
+ ../../include/kern/limits.h ../../include/vnode.h \
+ ../../include/spinlock.h includelinks/machine/spinlock.h \
+ ../../include/kern/fcntl.h ../../include/syscall.h ../../include/synch.h \
+ ../../include/limits.h ../../include/kern/errno.h \
+ ../../include/current.h includelinks/machine/current.h \
+ ../../include/thread.h ../../include/threadlist.h \
+ includelinks/machine/thread.h ../../include/setjmp.h \
+ includelinks/kern/machine/setjmp.h ../../include/proc.h \
+ ../../include/copyinout.h ../../include/stat.h ../../include/kern/stat.h \
+ ../../include/kern/stattypes.h ../../include/uio.h \
+ ../../include/kern/iovec.h
 loadelf.o: ../../syscall/loadelf.c ../../include/types.h \
  ../../include/kern/types.h includelinks/kern/machine/types.h \
  includelinks/machine/types.h ../../include/kern/errno.h \
@@ -423,6 +508,49 @@ loadelf.o: ../../syscall/loadelf.c ../../include/types.h \
  includelinks/machine/current.h ../../include/addrspace.h \
  ../../include/vm.h includelinks/machine/vm.h opt-dumbvm.h \
  ../../include/elf.h includelinks/machine/elf.h
+lseek.o: ../../syscall/lseek.c ../../include/cdefs.h \
+ ../../include/kern/unistd.h ../../include/types.h \
+ ../../include/kern/types.h includelinks/kern/machine/types.h \
+ includelinks/machine/types.h ../../include/vfs.h ../../include/array.h \
+ ../../include/lib.h opt-noasserts.h ../../include/file.h \
+ ../../include/kern/limits.h ../../include/vnode.h \
+ ../../include/spinlock.h includelinks/machine/spinlock.h \
+ ../../include/kern/fcntl.h ../../include/syscall.h ../../include/synch.h \
+ ../../include/limits.h ../../include/kern/errno.h \
+ ../../include/current.h includelinks/machine/current.h \
+ ../../include/thread.h ../../include/threadlist.h \
+ includelinks/machine/thread.h ../../include/setjmp.h \
+ includelinks/kern/machine/setjmp.h ../../include/proc.h \
+ ../../include/copyinout.h ../../include/stat.h ../../include/kern/stat.h \
+ ../../include/kern/stattypes.h
+open.o: ../../syscall/open.c ../../include/cdefs.h \
+ ../../include/kern/unistd.h ../../include/types.h \
+ ../../include/kern/types.h includelinks/kern/machine/types.h \
+ includelinks/machine/types.h ../../include/vfs.h ../../include/array.h \
+ ../../include/lib.h opt-noasserts.h ../../include/file.h \
+ ../../include/kern/limits.h ../../include/vnode.h \
+ ../../include/spinlock.h includelinks/machine/spinlock.h \
+ ../../include/kern/fcntl.h ../../include/syscall.h ../../include/synch.h \
+ ../../include/limits.h ../../include/kern/errno.h \
+ ../../include/current.h includelinks/machine/current.h \
+ ../../include/thread.h ../../include/threadlist.h \
+ includelinks/machine/thread.h ../../include/setjmp.h \
+ includelinks/kern/machine/setjmp.h ../../include/proc.h \
+ ../../include/copyinout.h
+read.o: ../../syscall/read.c ../../include/cdefs.h \
+ ../../include/kern/unistd.h ../../include/types.h \
+ ../../include/kern/types.h includelinks/kern/machine/types.h \
+ includelinks/machine/types.h ../../include/vfs.h ../../include/array.h \
+ ../../include/lib.h opt-noasserts.h ../../include/file.h \
+ ../../include/kern/limits.h ../../include/vnode.h \
+ ../../include/spinlock.h includelinks/machine/spinlock.h \
+ ../../include/kern/fcntl.h ../../include/syscall.h ../../include/synch.h \
+ ../../include/limits.h ../../include/kern/errno.h \
+ ../../include/current.h includelinks/machine/current.h \
+ ../../include/thread.h ../../include/threadlist.h \
+ includelinks/machine/thread.h ../../include/setjmp.h \
+ includelinks/kern/machine/setjmp.h ../../include/proc.h \
+ ../../include/copyinout.h ../../include/uio.h ../../include/kern/iovec.h
 runprogram.o: ../../syscall/runprogram.c ../../include/types.h \
  ../../include/kern/types.h includelinks/kern/machine/types.h \
  includelinks/machine/types.h ../../include/kern/errno.h \
@@ -442,6 +570,20 @@ time_syscalls.o: ../../syscall/time_syscalls.c ../../include/types.h \
  includelinks/machine/types.h ../../include/clock.h \
  ../../include/kern/time.h opt-synchprobs.h ../../include/copyinout.h \
  ../../include/syscall.h ../../include/cdefs.h
+write.o: ../../syscall/write.c ../../include/cdefs.h \
+ ../../include/kern/unistd.h ../../include/types.h \
+ ../../include/kern/types.h includelinks/kern/machine/types.h \
+ includelinks/machine/types.h ../../include/vfs.h ../../include/array.h \
+ ../../include/lib.h opt-noasserts.h ../../include/file.h \
+ ../../include/kern/limits.h ../../include/vnode.h \
+ ../../include/spinlock.h includelinks/machine/spinlock.h \
+ ../../include/kern/fcntl.h ../../include/syscall.h ../../include/synch.h \
+ ../../include/limits.h ../../include/kern/errno.h \
+ ../../include/current.h includelinks/machine/current.h \
+ ../../include/thread.h ../../include/threadlist.h \
+ includelinks/machine/thread.h ../../include/setjmp.h \
+ includelinks/kern/machine/setjmp.h ../../include/proc.h \
+ ../../include/copyinout.h ../../include/uio.h ../../include/kern/iovec.h
 arraytest.o: ../../test/arraytest.c ../../include/types.h \
  ../../include/kern/types.h includelinks/kern/machine/types.h \
  includelinks/machine/types.h ../../include/lib.h ../../include/cdefs.h \
@@ -628,11 +770,32 @@ vnode.o: ../../vfs/vnode.c ../../include/types.h \
  ../../include/synch.h ../../include/spinlock.h \
  includelinks/machine/spinlock.h ../../include/vfs.h \
  ../../include/array.h ../../include/vnode.h
+addrspace.o: ../../vm/addrspace.c ../../include/types.h \
+ ../../include/kern/types.h includelinks/kern/machine/types.h \
+ includelinks/machine/types.h ../../include/kern/errno.h \
+ ../../include/lib.h ../../include/cdefs.h opt-noasserts.h \
+ ../../include/addrspace.h ../../include/vm.h includelinks/machine/vm.h \
+ ../../include/spinlock.h includelinks/machine/spinlock.h opt-dumbvm.h
 kmalloc.o: ../../vm/kmalloc.c ../../include/types.h \
  ../../include/kern/types.h includelinks/kern/machine/types.h \
  includelinks/machine/types.h ../../include/lib.h ../../include/cdefs.h \
  opt-noasserts.h ../../include/spinlock.h includelinks/machine/spinlock.h \
  ../../include/vm.h includelinks/machine/vm.h
+vm.o: ../../vm/vm.c ../../include/types.h ../../include/kern/types.h \
+ includelinks/kern/machine/types.h includelinks/machine/types.h \
+ ../../include/spl.h ../../include/cdefs.h ../../include/proc.h \
+ ../../include/spinlock.h includelinks/machine/spinlock.h \
+ ../../include/thread.h ../../include/array.h ../../include/lib.h \
+ opt-noasserts.h ../../include/threadlist.h includelinks/machine/thread.h \
+ ../../include/setjmp.h includelinks/kern/machine/setjmp.h \
+ ../../include/file.h ../../include/kern/limits.h \
+ ../../include/kern/unistd.h ../../include/vnode.h ../../include/limits.h \
+ ../../include/current.h includelinks/machine/current.h \
+ ../../include/addrspace.h ../../include/vm.h includelinks/machine/vm.h \
+ opt-dumbvm.h ../../include/copyinout.h ../../include/kern/syscall.h \
+ ../../include/kern/errno.h ../../include/kern/wait.h \
+ includelinks/mips/trapframe.h ../../include/syscall.h \
+ ../../include/synch.h includelinks/mips/tlb.h
 trap.o: ../../arch/mips/locore/trap.c ../../include/types.h \
  ../../include/kern/types.h includelinks/kern/machine/types.h \
  includelinks/machine/types.h ../../include/signal.h \

@@ -31,32 +31,33 @@ static struct spinlock cm_lock = SPINLOCK_INITIALIZER;
 static unsigned initialized = 0;
 paddr_t my_space;
 
-
+//Function to print the coremap
 void print_coremap(void) {
-  //spinlock_acquire(&cm_lock);
   for(unsigned i = 0; i < num_pages; i++) {
     struct entries e = my_coremap.cm_entries[i];
     kprintf("entry: 0x%x  used: %d  first: %d  last: %d\n", i, e.used, e.first_page, e.last_page);
   }
-  //spinlock_release(&cm_lock);
 }
 
+//Function to check the coremap and see if the
+//first or last entries are not being used
 void check_coremap(void) {
-  //spinlock_acquire(&cm_lock);
   for(unsigned i = 0; i < num_pages; i++) {
     struct entries e = my_coremap.cm_entries[i];
     if (e.used == 0 && (e.first_page == 1 || e.last_page == 1)) {
       panic_coremap();
     }
   }
-  //spinlock_release(&cm_lock);
 }
 
+//Panic if coremap is not behaving properly
 void panic_coremap() {
   panic("panic coremap");
 }
 
+//Function called on boot of sys161 os161
 void vm_bootstrap(void) {
+
   paddr_t all_space = ram_getsize();
   //The space that kernel has used
   paddr_t used_space = ram_getfirstfree();
@@ -79,17 +80,19 @@ void vm_bootstrap(void) {
     my_coremap.cm_entries[i].last_page = 0;
   }
 
+  //our TLB is initialized
   initialized = 1;
-}
 
+}
 
 
 //Get consecutive physical pages
 paddr_t get_cppage(unsigned npages) {
-  //spinlock_acquire(&cm_lock);
+  
+   
   unsigned k = 0;
   unsigned i;
-  // kprintf("npages: %d\n", npages);
+  
   //Find if there is npages consecutive physical pages.
   //k is the count number that the number of consecutive
   //pages we found so far.
@@ -105,14 +108,13 @@ paddr_t get_cppage(unsigned npages) {
   //If npages consecutive physical pages are not found,
   //return 0.
   if(k != npages) {
-    //spinlock_release(&cm_lock);
     return 0;//Out of Memory: no enough consecutive pages in coremap
   }
 
   //Index of the first page and the last page
   unsigned base_page = i - k;
   unsigned last_page = i - 1;
-  // kprintf("i: 0x%x, k: %u, base_page: 0x%x, last_page: 0x%x\n", i, k, base_page, last_page);
+  
   //Set the flags for both first page and last page
   my_coremap.cm_entries[base_page].first_page = 1;
   my_coremap.cm_entries[last_page].last_page = 1;
@@ -122,31 +124,12 @@ paddr_t get_cppage(unsigned npages) {
   for(unsigned m = base_page; m <= last_page; m++) {
     my_coremap.cm_entries[m].used = 1;
   }
-  //spinlock_release(&cm_lock);
-
-  // for(i = base_page; i <= last_page; i++) {
-  //   struct entries e = my_coremap.cm_entries[i];
-  //   kprintf("entry: 0x%x  used: %d  first: %d  last: %d\n", i, e.used, e.first_page, e.last_page);
-  // }
   //Transfer the physical address to virtual address
   return PADDR_TO_KVADDR((paddr_t)(base_page << 12)); //TO RAM SHIFT
 }
 
 /* Fault handling function called by trap code */
 int vm_fault(int faulttype, vaddr_t faultaddress){
-  // switch (faulttype) {
-  //   case VM_FAULT_READ: //TO DO
-  //   case VM_FAULT_WRITE: // TO DO
-  //   break;
-  // }
-  // //For kernel
-  // if(curproc->proc_pid <= 1) {
-  //   int spl = splhigh();
-  //   unsigned v_pnum = ((unsigned)faultaddress >> 12);
-  //   (void) spl;
-  //   (void) v_pnum;
-  // }
-  // kprintf("FULLADDRESS: 0x%u\n", (unsigned)faultaddress);
   (void) faulttype;
   (void) faultaddress;
   return -1;
@@ -156,29 +139,29 @@ int vm_fault(int faulttype, vaddr_t faultaddress){
 
 /* Allocate/free kernel heap pages (called by kmalloc/kfree) */
 vaddr_t alloc_kpages(unsigned npages) {
+
   spinlock_acquire(&cm_lock);
+  
+
   if(initialized == 0) {
     paddr_t pa = ram_stealmem(npages);
-    // unsigned temp = (unsigned)pa;
-    // KASSERT(temp != 0 && temp != 0x80000000);
+  
     spinlock_release(&cm_lock);
     return PADDR_TO_KVADDR(pa);
   }
+   
    unsigned temp = (unsigned)get_cppage(npages);
-   //print_coremap();
+   
    spinlock_release(&cm_lock);
-   //KASSERT(temp != 0 && temp != 0x80000000);
-   //check_coremap();
    return (vaddr_t)temp;
 }
 
 void free_kpages(vaddr_t addr) {
+  
   spinlock_acquire(&cm_lock);
+
   paddr_t paddr = addr & 0x7FFFFFFF;
   unsigned i = (unsigned)(paddr >> 12);
-  // kprintf("VADDR:0x%x    PADDR:0x%x    PTAG:0x%x\n", (unsigned)addr, (unsigned)paddr, i);
-  // struct entries e = my_coremap.cm_entries[i];
-  // kprintf("entry: 0x%x  used: %d  first: %d  last: %d\n", i, e.used, e.first_page, e.last_page);
 
   my_coremap.cm_entries[i].first_page = 0;
   while(!my_coremap.cm_entries[i].last_page) {
@@ -189,9 +172,8 @@ void free_kpages(vaddr_t addr) {
   }
   my_coremap.cm_entries[i].last_page = 0;
   my_coremap.cm_entries[i].used = 0;
-
+  
   spinlock_release(&cm_lock);
-  //check_coremap();
 }
 
 /* TLB shootdown handling called from interprocessor_interrupt */

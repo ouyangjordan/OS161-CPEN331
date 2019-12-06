@@ -68,8 +68,9 @@ mallocthread(void *sm, unsigned long num)
 	void *oldptr2=NULL;
 	int i;
 
+//	kprintf("If I add these print statements here it passes km2 \n");
 	for (i=0; i<NTRIES; i++) {
-		ptr = kmalloc(ITEMSIZE);
+ 		ptr = kmalloc(ITEMSIZE);
 		if (ptr==NULL) {
 			if (sem) {
 				kprintf("thread %lu: kmalloc returned NULL\n",
@@ -118,8 +119,8 @@ mallocstress(int nargs, char **args)
 
 	(void)nargs;
 	(void)args;
-
 	sem = sem_create("mallocstress", 0);
+	
 	if (sem == NULL) {
 		panic("mallocstress: sem_create failed\n");
 	}
@@ -127,6 +128,7 @@ mallocstress(int nargs, char **args)
 	kprintf("Starting kmalloc stress test...\n");
 
 	for (i=0; i<NTHREADS; i++) {
+		kprintf("%d",i);
 		result = thread_fork("mallocstress", NULL,
 				     mallocthread, sem, i);
 		if (result) {

@@ -252,7 +252,7 @@ int sys_execv(const char *prog, char **args){
         	size_t curArgLen = strlen(argv[i]) + 1; 
 		size_t argLen = ROUNDUP(curArgLen,4);
         	stackptr -= (argLen * sizeof(char));
-        	errReturn = copyout((void *) argv[i], (userptr_t)stackptr, curArgLen);
+        	copyout((void *) argv[i], (userptr_t)stackptr, curArgLen);
         	argumentPtrs[i] = stackptr;        
     	} 	   
         
@@ -261,7 +261,7 @@ int sys_execv(const char *prog, char **args){
     	for(int i = argc; i >= 0; i--)
     	{
         	stackptr -= sizeof(vaddr_t);
-        	errReturn = copyout((void *) &argumentPtrs[i], ((userptr_t)stackptr),sizeof(vaddr_t));
+        	copyout((void *) &argumentPtrs[i], ((userptr_t)stackptr),sizeof(vaddr_t));
     	}	
     
     	vaddr_t argumentvPtr = stackptr;

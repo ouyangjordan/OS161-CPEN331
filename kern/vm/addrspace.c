@@ -52,13 +52,13 @@ as_create(void)
 	/*
 	 * Initialize as needed.
 	 */
-	 as->vtable_level1 = NULL;
+/*	 as->vtable_level1 = NULL;
 	 as->space_table = NULL;
 	 as->as_heap_base = (vaddr_t) 0;
 	 as->as_heap_tail = (vaddr_t) 0;
 	 as->as_stack_base = (vaddr_t) 0;
 	 as->as_stack_tail = (vaddr_t) 0;
-
+*/
 	return as;
 }
 
@@ -66,8 +66,8 @@ int
 as_copy(struct addrspace *old, struct addrspace **ret)
 {
 	struct addrspace *newas;
-	unsigned space;
-	unsigned i;
+//	unsigned space;
+//	unsigned i;
 
 	newas = as_create();
 	if (newas==NULL) {
@@ -77,7 +77,7 @@ as_copy(struct addrspace *old, struct addrspace **ret)
 	/*
 	 * Write this.
 	 */
-	 space =
+//	 space =
 
 	(void)old;
 
